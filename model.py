@@ -5,14 +5,16 @@
 #   Class definitions for UNET_model
 #
 # @resources:
-#   https://arxiv.org/pdf/1505.04597.pdf
+#   Olaf. R, et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
+#       University of Freiburg, Germany. https://arxiv.org/pdf/1505.04597.pdf
 #
 # @notes:
 #
 #
 # @ToDo:
-#
-#
+#   When preprocessing data, consider:
+#       a) Overlap tile padding strategy to prevent pixels from being cut out in outut, vs. 
+#       b) Basic padding  
 ##############################################
 
 import torch
@@ -23,16 +25,18 @@ import torchvision.transforms as trans
 
 
 class conv_unit(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, padding: int):
+    # Conv layer units used frequently in UNET
+
+    def __init__(self, in_channels: int, out_channels: int, padding: int = 0):
         super().__init__()
 
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
             nn.ReLU(),
-            nn.BatchNorm2d(num_features=out_channels),
+            nn.BatchNorm2d(num_features=out_channels, eps=1e-05, momentum=0.1, affine=True),
             nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
             nn.ReLU(),  
-            nn.BatchNorm2d(num_features=out_channels)
+            nn.BatchNorm2d(num_features=out_channels, eps=1e-05, momentum=0.1, affine=True)
         )
     
     def forward(self, x: torch.Tensor):
@@ -41,6 +45,8 @@ class conv_unit(nn.Module):
 
 
 class encode_unit(nn.Module):
+    # Encode units downsample and add complexity to input data by adding feature maps. 
+
     def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
         super().__init__()
 
@@ -52,10 +58,13 @@ class encode_unit(nn.Module):
         skip_layer = x        
         x = self.pool(x)
         
+        # Skip layers are returned for later use by decode units.
         return x, skip_layer
 
 
 class decode_unit(nn.Module):
+    # Decode units upsample input data and use skip connections to incorporate spatial information
+
     def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
         super().__init__()
 
@@ -67,8 +76,9 @@ class decode_unit(nn.Module):
 
         x = self.up_conv(x)
 
+        # Skip layers may require cropping before concatenation to passing data if no padding is used on conv units
         if skip_layer.shape != x.shape:
-            crop = trans.CenterCrop(size=x.shape[-2:]) # !! might use overlap tile strategy to prevent pixels from being cut out in outut
+            crop = trans.CenterCrop(size=x.shape[-2:])
             skip_layer = crop(skip_layer)
         x = torch.cat(tensors=(skip_layer, x), dim=1)
 
@@ -78,6 +88,8 @@ class decode_unit(nn.Module):
 
     
 class UNET_model(nn.Module):
+    # UNET_model consists of the following stages: Encoding -> Bridge -> Decoding -> End Convlution
+    # Skip layers link Encoding and Decoding stages
 
     def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 0): # out_channels will be number of classes
         super().__init__()
@@ -87,6 +99,8 @@ class UNET_model(nn.Module):
         
         for channels in hidden_channels:
             self.encode_units.append(module=encode_unit(in_channels=in_channels, out_channels=channels, conv_padding=conv_padding))
+            
+            # inserted at index 0 as decode unit shapes will occur in reverse order to encode unit shapes when indexing
             self.decode_units.insert(index=0, module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding))
             in_channels = channels
 
@@ -99,6 +113,8 @@ class UNET_model(nn.Module):
         
         for encode_unit in self.encode_units:
             x, skip_layer = encode_unit(x) 
+
+            # inserted at index 0 as skip layers will be accessed in the reverse order of their generation
             skip_layers.insert(0, skip_layer)
 
         x = self.bridge(x)
@@ -111,9 +127,14 @@ class UNET_model(nn.Module):
         return x
 
 
-
 if __name__ == "__main__":
-    rand = torch.randn((5, 3, 572, 572))
+    # Forward pass of UNET_model on random tensor, for testing
+
+    input_shape = (5, 3, 572, 572)
+    rand = torch.randn(input_shape)
     model = UNET_model(in_channels=3, out_channels=1, hidden_channels=[64, 128, 256, 512], conv_padding=0)
     out = model(rand)
-    print(out.shape)
+
+    print("Input Shape: ", input_shape)
+    print("Output Shape: ", out.shape)
+    print("Model Architecture:\n", model)
