@@ -11,19 +11,15 @@ class conv_unit(nn.Module):
         super().__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, 
-                      out_channels=out_channels,
-                      kernel_size=3,
-                      stride=1,
-                      padding=padding),
-            nn.ReLU()   
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
+            nn.ReLU(),  
+            nn.BatchNorm2d(num_features=out_channels)
         )
-        self.norm = nn.BatchNorm2d(num_features=out_channels)
     
-    def forward(self, ):
+    def forward(self, x: torch.Tensor):
         x = self.conv(x)
-        x = self.conv(x)
-        x = self.norm(x)
         return x
 
 
@@ -64,20 +60,25 @@ class decode_unit(nn.Module):
         return x
 
     
-
 class UNET_model(nn.module):
 
-    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int]): # out_channels will be number of classes
+    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int], conv_padding: int = 0): # out_channels will be number of classes
         super().__init__()
 
-        # self.down_steps = nn.ModuleList()
-        # self.up_steps = nn.ModuleList()
+        self.encode_units = nn.ModuleList()
+        self.decode_units = nn.ModuleList()
+        
+        for channels in hidden_channels:
+            self.encode_units.append(module=encode_unit(in_channels=in_channels, out_channels=channels, conv_padding=conv_padding))
+            self.decode_units.insert(index=0, module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding))
+            in_channels = channels
 
-        # for channels in hidden_channels:
-            
-
+        self.bridge_unit = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], conv_padding=conv_padding)
+        self.end_unit = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x: torch.Tensor):
+        
+        skip_layers = []
 
 
 
