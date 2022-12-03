@@ -19,14 +19,13 @@
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as trans
 
 
 class conv_unit(nn.Module):
-    # Conv layer units used frequently in UNET
-
+    """
+    Conv layer units used frequently in UNET
+    """
     def __init__(self, in_channels: int, out_channels: int, padding: int = 0):
         super().__init__()
 
@@ -45,8 +44,9 @@ class conv_unit(nn.Module):
 
 
 class encode_unit(nn.Module):
-    # Encode units downsample and add complexity to input data by adding feature maps. 
-
+    """
+    Encode units downsample and add complexity to input data by adding feature maps. 
+    """
     def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
         super().__init__()
 
@@ -63,8 +63,9 @@ class encode_unit(nn.Module):
 
 
 class decode_unit(nn.Module):
-    # Decode units upsample input data and use skip connections to incorporate spatial information
-
+    """
+    Decode units upsample input data and use skip connections to incorporate spatial information
+    """
     def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
         super().__init__()
 
@@ -88,9 +89,10 @@ class decode_unit(nn.Module):
 
     
 class UNET_model(nn.Module):
-    # UNET_model consists of the following stages: Encoding -> Bridge -> Decoding -> End Convlution
-    # Skip layers link Encoding and Decoding stages
-
+    """
+    UNET_model consists of the following stages: Encoding -> Bridge -> Decoding -> End Convlution
+    Skip layers link Encoding and Decoding stages
+    """
     def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 0): # out_channels will be number of classes
         super().__init__()
 
@@ -130,11 +132,11 @@ class UNET_model(nn.Module):
 if __name__ == "__main__":
     # Forward pass of UNET_model on random tensor, for testing
 
-    input_shape = (5, 3, 572, 572)
-    rand = torch.randn(input_shape)
-    model = UNET_model(in_channels=3, out_channels=1, hidden_channels=[64, 128, 256, 512], conv_padding=0)
+    INPUT_SHAPE = (5, 3, 572, 572)
+    rand = torch.randn(INPUT_SHAPE)
+    model = UNET_model(in_channels=3, out_channels=2, hidden_channels=[64, 128, 256, 512], conv_padding=0)
     out = model(rand)
 
-    print("Input Shape: ", input_shape)
+    print("Input Shape: ", INPUT_SHAPE)
     print("Output Shape: ", out.shape)
     print("Model Architecture:\n", model)
