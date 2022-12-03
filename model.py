@@ -13,6 +13,7 @@ class conv_unit(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
             nn.ReLU(),
+            nn.BatchNorm2d(num_features=out_channels),
             nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, stride=1, padding=padding),
             nn.ReLU(),  
             nn.BatchNorm2d(num_features=out_channels)
