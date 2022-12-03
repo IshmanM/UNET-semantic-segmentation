@@ -1,3 +1,19 @@
+# @author: Ishman Mann
+# @date: 01/12/2022
+# 
+# @description:
+#   Class definitions for UNET_model
+#
+# @resources:
+#   https://arxiv.org/pdf/1505.04597.pdf
+#
+# @notes:
+#
+#
+# @ToDo:
+#
+#
+##############################################
 
 import torch
 from torch import nn
@@ -33,7 +49,7 @@ class encode_unit(nn.Module):
 
     def forward(self, x: torch.Tensor):
         x = self.conv(x)
-        skip_layer = x
+        skip_layer = x        
         x = self.pool(x)
         
         return x, skip_layer
@@ -43,9 +59,9 @@ class decode_unit(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
         super().__init__()
 
-        self.up_conv = nn.ConvTranspose2d(in_channels=in_channels,out_channels=in_channels/2)
+        self.up_conv = nn.ConvTranspose2d(in_channels=in_channels, out_channels=in_channels//2, kernel_size=2, stride=2, padding=0)
         
-        self.conv = conv_unit(in_channels=in_channels/2, out_channels=out_channels, padding=conv_padding)
+        self.conv = conv_unit(in_channels=in_channels, out_channels=out_channels, padding=conv_padding)
 
     def forward(self, x: torch.Tensor, skip_layer: torch.Tensor):
 
@@ -54,16 +70,16 @@ class decode_unit(nn.Module):
         if skip_layer.shape != x.shape:
             crop = trans.CenterCrop(size=x.shape[-2:]) # !! might use overlap tile strategy to prevent pixels from being cut out in outut
             skip_layer = crop(skip_layer)
-        x = torch.cat(tensors=[skip_layer, x], dim=1)
+        x = torch.cat(tensors=(skip_layer, x), dim=1)
 
         x = self.conv(x)
 
         return x
 
     
-class UNET_model(nn.module):
+class UNET_model(nn.Module):
 
-    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int], conv_padding: int = 0): # out_channels will be number of classes
+    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 0): # out_channels will be number of classes
         super().__init__()
 
         self.encode_units = nn.ModuleList()
@@ -74,7 +90,7 @@ class UNET_model(nn.module):
             self.decode_units.insert(index=0, module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding))
             in_channels = channels
 
-        self.bridge = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], conv_padding=conv_padding)
+        self.bridge = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], padding=conv_padding)
         self.end_conv = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x: torch.Tensor):
@@ -82,15 +98,22 @@ class UNET_model(nn.module):
         skip_layers = []
         
         for encode_unit in self.encode_units:
-            x, skip_layer = self.encode_units[encode_unit](x) 
-            skip_layers.append(skip_layer)
-        
+            x, skip_layer = encode_unit(x) 
+            skip_layers.insert(0, skip_layer)
+
         x = self.bridge(x)
 
-        for decode_unit in range(len(self.decode_units)):
-            x = self.decode_units[decode_unit](x, skip_layer=skip_layer[decode_unit])
+        for decode_unit_idx in range(len(self.decode_units)):
+            x = self.decode_units[decode_unit_idx](x, skip_layer=skip_layers[decode_unit_idx])
 
         x = self.end_conv(x)
 
         return x
 
+
+
+if __name__ == "__main__":
+    rand = torch.randn((5, 3, 572, 572))
+    model = UNET_model(in_channels=3, out_channels=1, hidden_channels=[64, 128, 256, 512], conv_padding=0)
+    out = model(rand)
+    print(out.shape)
