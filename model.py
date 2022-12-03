@@ -74,14 +74,23 @@ class UNET_model(nn.module):
             self.decode_units.insert(index=0, module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding))
             in_channels = channels
 
-        self.bridge_unit = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], conv_padding=conv_padding)
-        self.end_unit = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0)
+        self.bridge = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], conv_padding=conv_padding)
+        self.end_conv = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x: torch.Tensor):
         
         skip_layers = []
+        
+        for encode_unit in self.encode_units:
+            x, skip_layer = self.encode_units[encode_unit](x) 
+            skip_layers.append(skip_layer)
+        
+        x = self.bridge(x)
 
+        for decode_unit in range(len(self.decode_units)):
+            x = self.decode_units[decode_unit](x, skip_layer=skip_layer[decode_unit])
 
+        x = self.end_conv(x)
 
         return x
 
