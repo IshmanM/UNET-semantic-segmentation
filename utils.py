@@ -93,12 +93,12 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                          # !! is this shaping valid?
 
         # Compute accuracy and loss
-        batch_size = x.shape[0] # Batch length may differ for the final batch
+        batch_size = y.shape[0] # Batch length may differ for the final batch
         data_size += batch_size
 
         batch_loss = loss_function(y_logits, y)
         loss += batch_loss*batch_size
-        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=x.shape[1])*batch_size
+        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
 
         # Backward step
         optimizer.zero_grad()
@@ -130,11 +130,11 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                         # !! is this shaping valid?
 
         # Compute accuracy and loss
-        batch_size = x.shape[0] # Batch length may differ for the final batch
+        batch_size = y.shape[0] # Batch length may differ for the final batch
         data_size += batch_size
 
         loss += loss_function(y_logits, y)*batch_size
-        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=x.shape[1])*batch_size
+        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
 
     loss /= data_size
     accuracy /= data_size
