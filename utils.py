@@ -23,6 +23,8 @@
 #   !! centerCrop may possibly pose an issue due to misallignment of y predicted when  computing accuracy, 
 #       so consider basic padding / img transformation based padding instead of cropping
 #       !! However, what if data labels are of smaller size than padded predictions?
+#
+#   !!! Need to see and acount for what the dataset labels shape looks like!
 ##############################################
 
 import torch
@@ -56,11 +58,11 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     Compute basic accuracy and multiclass dice coefficient
     """
     # Cropping may be necessary if no padding is used in model training
-    if y.shape != y_predicted.shape:
+    if y.shape != y_predicted.shape:                                       # !! is this comparison valid? Need to see and acount for what the dataset labels shape looks like!
         crop = trans.CenterCrop(size=y_predicted.shape[-2:])
         y = crop(y)
 
-    accuracy = torch.mean((y == y_predicted).float()).item()
+    accuracy = torch.mean((y == y_predicted).float()).item()             # !! is this comparison valid? Need to see and acount for what the dataset labels shape looks like!   
 
     # Average the dice coefficients computed for each class
     dice_coeff = 0
@@ -89,8 +91,8 @@ def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Modul
     for x, y in dataloader:
         
         # Forward step
-        y_logits = model(x)
-        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
+        y_logits = model(x)                                                                 # !! is this shaping valid?
+        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                          # !! is this shaping valid?
 
         # Compute accuracy and loss
         batch_size = x.shape[0] # Batch length may differ for the final batch
@@ -112,8 +114,6 @@ def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Modul
     return loss, accuracy, dice_coeff
 
 
-
-
 def test_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
               device: torch.device = "cuda"):
     """
@@ -122,8 +122,26 @@ def test_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module
     x = x.to(device)
     y = y.to(device)
 
+    model.eval()
 
+    loss, accuracy, dice_coeff = 0, 0, 0
+    data_size = 0
 
+    for x, y in dataloader:
 
+        # Forward step
+        y_logits = model(x)                                                                # !! is this shaping valid?
+        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                         # !! is this shaping valid?
 
-    return
+        # Compute accuracy and loss
+        batch_size = x.shape[0] # Batch length may differ for the final batch
+        data_size += batch_size
+
+        loss += loss_function(y_logits, y)*batch_size
+        accuracy, dice_coeff += metrics(y, y_predicted, num_labels=x.shape[1])*batch_size
+
+    loss /= data_size
+    accuracy /= data_size
+    dice_coeff /= data_size
+
+    return loss, accuracy, dice_coeff

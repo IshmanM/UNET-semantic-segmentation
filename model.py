@@ -5,8 +5,8 @@
 #   Class definitions for UNET_model
 #
 # @resources:
-#   Olaf. R, et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
-#       University of Freiburg, Germany. https://arxiv.org/pdf/1505.04597.pdf
+#   Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
+#       University of Freiburg. https://arxiv.org/pdf/1505.04597.pdf
 #
 # @notes:
 #
@@ -15,6 +15,9 @@
 #   When preprocessing data, consider:
 #       a) Overlap tile padding strategy to prevent pixels from being cut out in outut, vs. 
 #       b) Basic padding  
+#
+#   !! centerCrop may possibly pose an issue due to misallignment of y predicted when computing accuracy, 
+#       so consider basic padding / img transformation based padding instead of cropping
 ##############################################
 
 import torch

@@ -5,14 +5,14 @@
 #   
 #
 # @resources:
-#   Olaf. R, et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
-#       University of Freiburg, Germany. https://arxiv.org/pdf/1505.04597.pdf
+#   Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
+#       University of Freiburg. https://arxiv.org/pdf/1505.04597.pdf
 #
 # @notes:
 #
 #
 # @ToDo:
-#
+#   !! Modify utils.py according to input labels shape
 #
 ##############################################
 
@@ -77,5 +77,5 @@ if __name__ == "__main__":
 
     optimizer = torch.optim.SGD(params=model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM, dampening=DAMPENING)
     
-    loss_fn = nn.CrossEntropyLoss()
+    loss_function = nn.CrossEntropyLoss()
 
