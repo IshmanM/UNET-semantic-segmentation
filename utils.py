@@ -22,6 +22,7 @@
 #
 #   !! centerCrop may possibly pose an issue due to misallignment of y predicted when  computing accuracy, 
 #       so consider basic padding / img transformation based padding instead of cropping
+#       !! However, what if data labels are of smaller size than padded predictions?
 ##############################################
 
 import torch
@@ -43,18 +44,25 @@ import torchvision.transforms as trans
 
 
 def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
+    """
+    Compute dice coefficient, a useful metric for semantic segmentation 
+    """
     SMOOTH = 1e-8 # To avoid division by 0
     return (2*(y*y_predicted).sum()) / ((y + y_predicted).sum() + SMOOTH)
 
 
 def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
- 
+    """
+    Compute basic accuracy and multiclass dice coefficient
+    """
+    # Cropping may be necessary if no padding is used in model training
     if y.shape != y_predicted.shape:
         crop = trans.CenterCrop(size=y_predicted.shape[-2:])
         y = crop(y)
 
     accuracy = torch.mean((y == y_predicted).float()).item()
 
+    # Average the dice coefficients computed for each class
     dice_coeff = 0
     for label in range(num_labels):
         label_idxs_in_y = (y == label).float()
@@ -67,7 +75,9 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
 
 def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
                optimizer: torch.optim.Optimizer, device: torch.device = "cuda"):
-    
+    """
+    Enable train mode and train model for 1 epoch
+    """
     x = x.to(device)
     y = y.to(device)
 
@@ -106,7 +116,9 @@ def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Modul
 
 def test_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
               device: torch.device = "cuda"):
-
+    """
+    Disable train mode and test model
+    """
     x = x.to(device)
     y = y.to(device)
 
