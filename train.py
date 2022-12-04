@@ -6,7 +6,7 @@
 #
 # @resources:
 #   Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
-#       University of Freiburg. https://arxiv.org/pdf/1505.04597.pdf
+#       University of Freiburg. Retrieved from https://arxiv.org/pdf/1505.04597.pdf
 #
 # @notes:
 #
@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import albumentations as A
 
 from model import UNET_model
 
@@ -55,6 +56,14 @@ if __name__ == "__main__":
 
 
     # Load and preprocess data
+
+    COLORMAP_PATH = "data/semantic_drone_dataset/training_set/gt/semantic/class_dict.csv"
+    colormap_df = pd.read_csv(COLORMAP_PATH)
+
+    COLORMAP = colormap_df.loc[:,[" r"," g"," b"]].values.tolist()
+    CLASSES = colormap_df.loc[:,"name"].values.tolist()
+    NUM_CLASSES = colormap_df.shape[0]
+
 
 
 

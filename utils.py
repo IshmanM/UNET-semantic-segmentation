@@ -6,10 +6,10 @@
 #
 # @resources:
 #   Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
-#       University of Freiburg. https://arxiv.org/pdf/1505.04597.pdf
+#       University of Freiburg. Retrieved from https://arxiv.org/pdf/1505.04597.pdf
 #
 #   Ekin, T. (2019). Metrics to Evaluate your Semantic Segmentation Model.
-#       Towards Data Science. https://towardsdatascience.com/metrics-to-evaluate-your-semantic-segmentation-model-6bcb99639aa2
+#       Towards Data Science. Retrieved from https://towardsdatascience.com/metrics-to-evaluate-your-semantic-segmentation-model-6bcb99639aa2
 #
 # @notes:
 #
@@ -75,20 +75,18 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     return accuracy, dice_coeff
 
 
-def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
+def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
                optimizer: torch.optim.Optimizer, device: torch.device = "cuda"):
     """
     Enable train mode and train model for 1 epoch
     """
-    x = x.to(device)
-    y = y.to(device)
-
     model.train()
 
     loss, accuracy, dice_coeff = 0, 0, 0
     data_size = 0
 
     for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
         
         # Forward step
         y_logits = model(x)                                                                 # !! is this shaping valid?
@@ -100,7 +98,7 @@ def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Modul
 
         batch_loss = loss_function(y_logits, y)
         loss += batch_loss*batch_size
-        accuracy, dice_coeff += metrics(y, y_predicted, num_labels=x.shape[1])*batch_size
+        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=x.shape[1])*batch_size
 
         # Backward step
         optimizer.zero_grad()
@@ -114,20 +112,18 @@ def train_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Modul
     return loss, accuracy, dice_coeff
 
 
-def test_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
+def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
               device: torch.device = "cuda"):
     """
     Disable train mode and test model
     """
-    x = x.to(device)
-    y = y.to(device)
-
     model.eval()
 
     loss, accuracy, dice_coeff = 0, 0, 0
     data_size = 0
 
     for x, y in dataloader:
+        x, y = x.to(device), y.to(device)
 
         # Forward step
         y_logits = model(x)                                                                # !! is this shaping valid?
@@ -138,7 +134,7 @@ def test_loop(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module
         data_size += batch_size
 
         loss += loss_function(y_logits, y)*batch_size
-        accuracy, dice_coeff += metrics(y, y_predicted, num_labels=x.shape[1])*batch_size
+        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=x.shape[1])*batch_size
 
     loss /= data_size
     accuracy /= data_size
