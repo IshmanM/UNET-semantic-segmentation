@@ -16,8 +16,9 @@
 #   Add image transformations
 #   Need to convert RGB masks into multichannel input with num_classes channels. Pixel of a class's channel = 1 if pixel is of that class.
 #
-#   !! Make use of OpenCV
 #   Save the mask data restructuring in a dir
+#   
+#   !! Need to handle images in small patches
 ##############################################
 
 import os
