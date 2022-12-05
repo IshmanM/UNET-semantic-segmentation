@@ -54,5 +54,4 @@ class semanticDroneDataset(Dataset):
             mask.append(label_map.astype("float32"))
         mask = np.stack(mask, axis=0)
 
-        print("Mask shape: ", mask.shape)
         return image, mask
