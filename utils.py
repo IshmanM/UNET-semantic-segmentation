@@ -24,7 +24,9 @@
 #       so consider basic padding / img transformation based padding instead of cropping
 #       !! However, what if data labels are of smaller size than padded predictions?
 #
-#   !!! Need to see and acount for what the dataset labels shape looks like!
+#   !! Need to handle images in small patches, such as w/patchify. 
+#          Best to create a func to do it once and save it in a dir
+#
 ##############################################
 
 import torch
