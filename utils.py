@@ -33,6 +33,7 @@ from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as trans
 from datasets import semanticDroneDataset
+import albumentations as A
 
 # Data loading and preprocessing utils
 
@@ -44,9 +45,9 @@ def semanticDroneDataset_dataloaders(
     validation_split: float = 0.1,
     test_split: float = 0.1,
     batch_size: int = 1,
-    num_workers = 0,
-    pin_memory = False,
-    transform: function = None):
+    num_workers = 4,
+    pin_memory = True,
+    transform: A.Compose = None):
 
     if train_split + validation_split + test_split != 1:
         raise ValueError("train_split, validation_split, and test_split must sum to 1")
@@ -67,7 +68,6 @@ def semanticDroneDataset_dataloaders(
 
 
 # Training utils
-
 
 def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
     """
@@ -122,7 +122,9 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
 
         batch_loss = loss_function(y_logits, y)
         loss += batch_loss*batch_size
-        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+        batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+        accuracy += batch_accuracy
+        dice_coeff += batch_dice_coeff
 
         # Backward step
         optimizer.zero_grad()
@@ -158,7 +160,9 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         data_size += batch_size
 
         loss += loss_function(y_logits, y)*batch_size
-        accuracy, dice_coeff += metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+        batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+        accuracy += batch_accuracy
+        dice_coeff += batch_dice_coeff
 
     loss /= data_size
     accuracy /= data_size
