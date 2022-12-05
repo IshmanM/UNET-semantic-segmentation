@@ -42,16 +42,16 @@ class semanticDroneDataset(Dataset):
         image_path = os.path.join(self.image_dir, self.images[index])
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(".jpg", ".png"))
 
-        image = np.rollaxis(np.array(Image.open(image_path).convert("RGB")), 2, 0)
-        raw_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB")), 2, 0)
+        image = np.rollaxis(np.array(Image.open(image_path).convert("RGB"), dtype=np.float16), 2, 0)
+        raw_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
 
         mask = []
-        bitmask = np.empty(raw_mask.shape)
+        bitmask = np.empty(raw_mask.shape, dtype=np.float16)
         for label_rgb in self.colormap:
             for color in range(3):
                 bitmask[color] = label_rgb[color]
             label_map = np.all(np.equal(raw_mask, bitmask), axis=0)
-            mask.append(label_map.astype("float32"))
+            mask.append(label_map.astype("float16"))
         mask = np.stack(mask, axis=0)
 
         return image, mask
