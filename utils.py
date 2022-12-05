@@ -29,17 +29,41 @@
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as trans
-
+from datasets import semanticDroneDataset
 
 # Data loading and preprocessing utils
 
+def semanticDroneDataset_dataloaders(
+    image_dir: str,
+    mask_dir: str,
+    colormap: list,
+    train_split: float = 0.8,
+    validation_split: float = 0.1,
+    test_split: float = 0.1,
+    batch_size: int = 1,
+    num_workers = 0,
+    pin_memory = False,
+    transform: function = None):
 
+    if train_split + validation_split + test_split != 1:
+        raise ValueError("train_split, validation_split, and test_split must sum to 1")
 
+    ds = semanticDroneDataset(image_dir=image_dir, mask_dir=mask_dir, colormap=colormap, transform=transform)
+    train_ds, validation_ds, test_ds = random_split(ds, [train_split, validation_split, test_split])
 
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, 
+                              num_workers=num_workers, pin_memory=pin_memory)
 
+    validation_loader = DataLoader(validation_ds, batch_size=batch_size, shuffle=False, 
+                                   num_workers=num_workers, pin_memory=pin_memory)
+
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, 
+                             num_workers=num_workers, pin_memory=pin_memory)
+
+    return train_loader, validation_loader, test_loader
 
 
 # Training utils
