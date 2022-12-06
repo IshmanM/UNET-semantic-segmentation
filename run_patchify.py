@@ -29,18 +29,21 @@ if __name__ == "__main__":
     IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
     MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
-    PATCHIFY_QUEUE = ["TRAIN_IMAGES", "TRAIN_MASKS", 
-                      "TEST_IMAGES", "TEST_MASKS", 
-                      "VALIDATION_IMAGES", "VALIDATION_MASKS"]
-
+    PATCHIFY_QUEUE = [{"name":"TRAIN_IMAGES", "save_type":IMAGE_SAVE_TYPE}, 
+                      {"name":"TRAIN_MASKS", "save_type":MASK_SAVE_TYPE}, 
+                      {"name":"TEST_IMAGES", "save_type":IMAGE_SAVE_TYPE}, 
+                      {"name":"TEST_MASKS", "save_type":MASK_SAVE_TYPE}, 
+                      {"name":"VALIDATION_IMAGES", "save_type":IMAGE_SAVE_TYPE}, 
+                      {"name":"VALIDATION_MASKS", "save_type":MASK_SAVE_TYPE}]
+                      
     for image_set in PATCHIFY_QUEUE:
         
-        images_dir = os.environ[image_set + "_DIR"]
-        patches_dir = os.environ["PATCHIFIED_" + image_set + "_DIR"]
+        images_dir = os.environ[image_set["name"] + "_DIR"]
+        patches_dir = os.environ["PATCHIFIED_" + image_set["name"] + "_DIR"]
 
         patchify_images(images_dir=images_dir, 
                         patches_dir=patches_dir, 
-                        save_type=IMAGE_SAVE_TYPE, 
+                        save_type=image_set["save_type"], 
                         patch_size=PATCH_SIZE, 
                         step=STEP)
  
