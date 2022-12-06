@@ -36,8 +36,48 @@ from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as trans
 from datasets import semanticDroneDataset
 import albumentations as A
+from patchify import patchify
+import os
+from PIL import Image
+import numpy as np
+import re
 
 # Data loading and preprocessing utils
+
+def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_size: tuple, step: int, rgb: bool = True):
+
+    image_subpaths = os.listdir(images_dir)
+    
+    if rgb:
+        patch_size += (3,) # 3rd dimension for RGB
+    
+    for image_subpath in image_subpaths:
+        image_path = os.path.join(images_dir, image_subpath)
+        image = np.array(Image.open(image_path).convert("RGB"), dtype=np.uint8)
+
+        patches = patchify(image=image, patch_size=patch_size, step=step)
+
+        for x in range(patches.shape[0]):
+            for y in range(patches.shape[1]):
+                
+                if rgb:
+                    patch = patches[x, y, 0, ...]
+                else:
+                    patch = patches[x, y, ...]
+                
+                print("patches:", patches.shape)
+                print("patch:", patch.shape)
+                
+
+                patch = Image.fromarray(patch)
+
+                patch_subpath = re.sub('\.[0-9A-Za-z]*','',image_subpath) + '_' + str(x) + str(y) + '.' + save_type
+                patch_path = os.path.join(patches_dir, patch_subpath)
+                patch.save(patch_path)
+            
+            
+
+
 
 def semanticDroneDataset_dataloaders(
     image_dir: str,
