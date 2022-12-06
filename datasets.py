@@ -19,6 +19,9 @@
 #   Save the mask data restructuring in a dir
 #   
 #   !! Need to handle images in small patches, such as w/patchify, maybe handle in utils and save imgs there
+#
+#   Consider dynamic patchifying
+#
 ##############################################
 
 import os

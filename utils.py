@@ -27,6 +27,8 @@
 #   !! Need to handle images in small patches, such as w/patchify. 
 #          Best to create a func to do it once and save it in a dir
 #
+#   Consider dynamic patchifying
+#
 ##############################################
 
 import torch
@@ -46,15 +48,21 @@ from tqdm.auto import tqdm
 # Data loading and preprocessing utils
 
 def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_size: tuple, step: int, rgb: bool = True):
-
+    """
+    Save patches of large images in desired directory. 
+    Compatible with both RGB and single-channel (typically greyscale) images.
+    """
     image_subpaths = os.listdir(images_dir)
     
     if rgb:
         patch_size += (3,) # 3rd dimension for RGB
+        convert_value = "RGB"
+    else:
+        convert_value = "L" # For single-channel images
     
     for image_subpath in tqdm(image_subpaths):
         image_path = os.path.join(images_dir, image_subpath)
-        image = np.array(Image.open(image_path).convert("RGB"), dtype=np.uint8)
+        image = np.array(Image.open(image_path).convert(convert_value), dtype=np.uint8)
 
         patches = patchify(image=image, patch_size=patch_size, step=step)
 
@@ -73,9 +81,6 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
                 patch.save(patch_path)
             
             
-
-
-
 def semanticDroneDataset_dataloaders(
     image_dir: str,
     mask_dir: str,
@@ -87,7 +92,9 @@ def semanticDroneDataset_dataloaders(
     num_workers = 4,
     pin_memory = True,
     transform: A.Compose = None):
-
+    """
+    Generate train, validation, and test DataLoaders of desired split sizes. 
+    """
     if train_split + validation_split + test_split != 1:
         raise ValueError("train_split, validation_split, and test_split must sum to 1")
 
