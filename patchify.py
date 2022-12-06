@@ -23,11 +23,11 @@ if __name__ == "__main__":
     STEP = 1000
 
     BASE_IMAGES_DIR = "data\\semantic_drone_dataset\\training_set\\images"
-    BASE_PATCHES_DIR = "unused_code\\patches_test"
+    BASE_PATCHES_DIR = "data\\semantic_drone_dataset\\patchified\\images"
     BASE_SAVE_TYPE = "jpg"
 
-    MASK_IMAGES_DIR = "data\\semantic_drone_dataset\\training_set\\images"
-    MASK_PATCHES_DIR = "unused_code\\patches_test"
+    MASK_IMAGES_DIR = "data\\semantic_drone_dataset\\training_set\\gt\\semantic\\label_images"
+    MASK_PATCHES_DIR = "data\\semantic_drone_dataset\\patchified\\label_images"
     MASK_SAVE_TYPE = "png"
 
     patchify_images(images_dir=BASE_IMAGES_DIR, 
