@@ -136,7 +136,7 @@ class UNET_model(nn.Module):
 if __name__ == "__main__":
     # Forward pass of UNET_model on random tensor, for testing
 
-    INPUT_SHAPE = (5, 3, 572, 572)
+    INPUT_SHAPE = (5, 3, 571, 571)
     rand = torch.randn(INPUT_SHAPE)
     model = UNET_model(in_channels=3, out_channels=2, hidden_channels=[64, 128, 256, 512], conv_padding=1)
     out = model(rand)

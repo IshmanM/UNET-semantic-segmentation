@@ -81,43 +81,34 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
                 patch.save(patch_path)
             
             
-def semanticDroneDataset_dataloaders(
-    image_dir: str,
-    mask_dir: str,
+def semanticDroneDataset_dataloader(
+    images_dir: str,
+    masks_dir: str,
     image_save_type: str,
     mask_save_type: str,
     colormap: list,
-    train_split: float = 0.8,
-    validation_split: float = 0.1,
-    test_split: float = 0.1,
+    shuffle: bool = False,
+    transform: A.Compose = None,
     batch_size: int = 1,
     num_workers = 4,
-    pin_memory = True,
-    transform: A.Compose = None):
+    pin_memory = True ):
     """
     Generate train, validation, and test DataLoaders of desired split sizes. 
     """
-    if train_split + validation_split + test_split != 1:
-        raise ValueError("train_split, validation_split, and test_split must sum to 1")
-
-    ds = semanticDroneDataset(image_dir=image_dir, 
-                              mask_dir=mask_dir, 
+    ds = semanticDroneDataset(image_dir=images_dir, 
+                              mask_dir=masks_dir, 
                               image_save_type=image_save_type, 
                               mask_save_type=mask_save_type, 
                               colormap=colormap, 
                               transform=transform)
-    train_ds, validation_ds, test_ds = random_split(ds, [train_split, validation_split, test_split])
 
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, 
-                              num_workers=num_workers, pin_memory=pin_memory)
-
-    validation_loader = DataLoader(validation_ds, batch_size=batch_size, shuffle=False, 
-                                   num_workers=num_workers, pin_memory=pin_memory)
-
-    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, 
-                             num_workers=num_workers, pin_memory=pin_memory)
-
-    return train_loader, validation_loader, test_loader
+    ds_loader = DataLoader(dataset=ds, 
+                           batch_size=batch_size, 
+                           shuffle=shuffle, 
+                           num_workers=num_workers, 
+                           pin_memory=pin_memory)
+  
+    return ds_loader
 
 
 # Training utils

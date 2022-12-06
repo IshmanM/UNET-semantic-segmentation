@@ -16,29 +16,32 @@
 ##############################################
 
 from utils import patchify_images
+from dotenv import load_dotenv
+import os
 
 if __name__ == "__main__":
+
+    load_dotenv('.env')
 
     PATCH_SIZE = (1000, 1000)
     STEP = 1000
 
-    BASE_IMAGES_DIR = "data\\semantic_drone_dataset\\training_set\\images"
-    BASE_PATCHES_DIR = "data\\semantic_drone_dataset\\patchified\\images"
-    BASE_SAVE_TYPE = "jpg"
+    IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
+    MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
-    MASK_IMAGES_DIR = "data\\semantic_drone_dataset\\training_set\\gt\\semantic\\label_images"
-    MASK_PATCHES_DIR = "data\\semantic_drone_dataset\\patchified\\label_images"
-    MASK_SAVE_TYPE = "png"
+    PATCHIFY_QUEUE = ["TRAIN_IMAGES", "TRAIN_MASKS", 
+                      "TEST_IMAGES", "TEST_MASKS", 
+                      "VALIDATION_IMAGES", "VALIDATION_MASKS"]
 
-    patchify_images(images_dir=BASE_IMAGES_DIR, 
-                    patches_dir=BASE_PATCHES_DIR, 
-                    save_type=BASE_SAVE_TYPE, 
-                    patch_size=PATCH_SIZE, 
-                    step=STEP)
-    
-    patchify_images(images_dir=MASK_IMAGES_DIR, 
-                    patches_dir=MASK_PATCHES_DIR, 
-                    save_type=MASK_SAVE_TYPE, 
-                    patch_size=PATCH_SIZE, 
-                    step=STEP)
-    
+    for image_set in PATCHIFY_QUEUE:
+        
+        images_dir = os.environ[image_set + "_DIR"]
+        patches_dir = os.environ["PATCHIFIED_" + image_set + "_DIR"]
+
+        patchify_images(images_dir=images_dir, 
+                        patches_dir=patches_dir, 
+                        save_type=IMAGE_SAVE_TYPE, 
+                        patch_size=PATCH_SIZE, 
+                        step=STEP)
+ 
+                    

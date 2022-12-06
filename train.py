@@ -14,6 +14,7 @@
 # @ToDo:
 #   !! Modify utils.py according to input labels shape
 #
+#   need to adjust run_patchify.py, main.py, utils.py, datasets.py to new semantic_drone_dataset stucture 
 ##############################################
 
 
@@ -42,9 +43,13 @@ from torchvision import transforms
 from timeit import default_timer as timer 
 from tqdm.auto import tqdm # for progress bar
 
+from utils import semanticDroneDataset_dataloaders
+from dotenv import load_dotenv
 
 
 if __name__ == "__main__":
+
+    load_dotenv('.env')
 
     # Set device as GPU
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -57,14 +62,12 @@ if __name__ == "__main__":
 
     # Load and preprocess data
 
-    COLORMAP_PATH = "data/semantic_drone_dataset/training_set/gt/semantic/class_dict.csv"
+    COLORMAP_PATH = os.environ["COLORMAP_PATH"]
     colormap_df = pd.read_csv(COLORMAP_PATH)
 
     COLORMAP = colormap_df.loc[:,[" r"," g"," b"]].values.tolist()
     CLASSES = colormap_df.loc[:,"name"].values.tolist()
     NUM_CLASSES = colormap_df.shape[0]
-
-
 
 
 
