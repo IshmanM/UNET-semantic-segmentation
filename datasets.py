@@ -58,4 +58,9 @@ class semanticDroneDataset(Dataset):
             mask.append(label_map.astype("float16"))
         mask = np.stack(mask, axis=0)
 
+        if self.transform != None:
+            # Augment image and mask
+            transformations = self.transform(image=image, mask=mask)
+            image, mask = transformations["image"], transformations["mask"]
+
         return image, mask
