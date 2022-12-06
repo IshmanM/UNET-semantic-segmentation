@@ -29,7 +29,7 @@ class conv_unit(nn.Module):
     """
     Conv layer units used frequently in UNET
     """
-    def __init__(self, in_channels: int, out_channels: int, padding: int = 0):
+    def __init__(self, in_channels: int, out_channels: int, padding: int = 1):
         super().__init__()
 
         self.conv = nn.Sequential(
@@ -50,7 +50,7 @@ class encode_unit(nn.Module):
     """
     Encode units downsample and add complexity to input data by adding feature maps. 
     """
-    def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
+    def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 1):
         super().__init__()
 
         self.conv = conv_unit(in_channels=in_channels, out_channels=out_channels, padding=conv_padding)
@@ -69,10 +69,10 @@ class decode_unit(nn.Module):
     """
     Decode units upsample input data and use skip connections to incorporate spatial information
     """
-    def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 0):
+    def __init__(self, in_channels: int, out_channels: int, conv_padding: int = 1):
         super().__init__()
 
-        self.up_conv = nn.ConvTranspose2d(in_channels=in_channels, out_channels=in_channels//2, kernel_size=2, stride=2, padding=0)
+        self.up_conv = nn.ConvTranspose2d(in_channels=in_channels, out_channels=in_channels//2, kernel_size=2, stride=2, padding=0) # padding unneeded
         
         self.conv = conv_unit(in_channels=in_channels, out_channels=out_channels, padding=conv_padding)
 
@@ -82,8 +82,9 @@ class decode_unit(nn.Module):
 
         # Skip layers may require cropping before concatenation to passing data if no padding is used on conv units
         if skip_layer.shape != x.shape:
-            crop = trans.CenterCrop(size=x.shape[-2:])
-            skip_layer = crop(skip_layer)
+            # crop = trans.CenterCrop(size=x.shape[-2:])
+            # skip_layer = crop(skip_layer)
+            x = trans.functional.resize(x, size=skip_layer.shape[-2:])
         x = torch.cat(tensors=(skip_layer, x), dim=1)
 
         x = self.conv(x)
@@ -96,7 +97,7 @@ class UNET_model(nn.Module):
     UNET_model consists of the following stages: Encoding -> Bridge -> Decoding -> End Convlution
     Skip layers link Encoding and Decoding stages
     """
-    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 0): # out_channels will be number of classes
+    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 1): # out_channels will be number of classes
         super().__init__()
 
         self.encode_units = nn.ModuleList()
@@ -110,7 +111,7 @@ class UNET_model(nn.Module):
             in_channels = channels
 
         self.bridge = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], padding=conv_padding)
-        self.end_conv = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0)
+        self.end_conv = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0) # kernel_size=1 => padding=0 
 
     def forward(self, x: torch.Tensor):
         
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 
     INPUT_SHAPE = (5, 3, 572, 572)
     rand = torch.randn(INPUT_SHAPE)
-    model = UNET_model(in_channels=3, out_channels=2, hidden_channels=[64, 128, 256, 512], conv_padding=0)
+    model = UNET_model(in_channels=3, out_channels=2, hidden_channels=[64, 128, 256, 512], conv_padding=1)
     out = model(rand)
 
     print("Input Shape: ", INPUT_SHAPE)
