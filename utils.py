@@ -84,6 +84,8 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
 def semanticDroneDataset_dataloaders(
     image_dir: str,
     mask_dir: str,
+    image_save_type: str,
+    mask_save_type: str,
     colormap: list,
     train_split: float = 0.8,
     validation_split: float = 0.1,
@@ -98,7 +100,12 @@ def semanticDroneDataset_dataloaders(
     if train_split + validation_split + test_split != 1:
         raise ValueError("train_split, validation_split, and test_split must sum to 1")
 
-    ds = semanticDroneDataset(image_dir=image_dir, mask_dir=mask_dir, colormap=colormap, transform=transform)
+    ds = semanticDroneDataset(image_dir=image_dir, 
+                              mask_dir=mask_dir, 
+                              image_save_type=image_save_type, 
+                              mask_save_type=mask_save_type, 
+                              colormap=colormap, 
+                              transform=transform)
     train_ds, validation_ds, test_ds = random_split(ds, [train_split, validation_split, test_split])
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, 
@@ -128,11 +135,11 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     Compute basic accuracy and multiclass dice coefficient
     """
     # Cropping may be necessary if no padding is used in model training
-    if y.shape != y_predicted.shape:                                       # !! is this comparison valid? Need to see and acount for what the dataset labels shape looks like!
+    if y.shape != y_predicted.shape:
         crop = trans.CenterCrop(size=y_predicted.shape[-2:])
         y = crop(y)
 
-    accuracy = torch.mean((y == y_predicted).float()).item()             # !! is this comparison valid? Need to see and acount for what the dataset labels shape looks like!   
+    accuracy = torch.mean((y == y_predicted).float()).item()
 
     # Average the dice coefficients computed for each class
     dice_coeff = 0
@@ -159,8 +166,8 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         x, y = x.to(device), y.to(device)
         
         # Forward step
-        y_logits = model(x)                                                                 # !! is this shaping valid?
-        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                          # !! is this shaping valid?
+        y_logits = model(x)
+        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
 
         # Compute accuracy and loss
         batch_size = y.shape[0] # Batch length may differ for the final batch
@@ -198,8 +205,8 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         x, y = x.to(device), y.to(device)
 
         # Forward step
-        y_logits = model(x)                                                                # !! is this shaping valid?
-        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)                         # !! is this shaping valid?
+        y_logits = model(x)
+        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
 
         # Compute accuracy and loss
         batch_size = y.shape[0] # Batch length may differ for the final batch

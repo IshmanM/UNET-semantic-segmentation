@@ -33,18 +33,21 @@ import albumentations as A
 
 
 class semanticDroneDataset(Dataset):
-    def __init__(self, image_dir: str, mask_dir: str, colormap: list, transform: A.Compose = None):
+    def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, colormap: list, transform: A.Compose = None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
+        self.mask_save_type = mask_save_type
+        self.image_save_type = image_save_type
         self.images = os.listdir(image_dir)
         self.colormap = colormap
+        self.transform = transform
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, index):
         image_path = os.path.join(self.image_dir, self.images[index])
-        mask_path = os.path.join(self.mask_dir, self.images[index].replace(".jpg", ".png"))
+        mask_path = os.path.join(self.mask_dir, self.images[index].replace(self.image_save_type, self.mask_save_type))
 
         image = np.rollaxis(np.array(Image.open(image_path).convert("RGB"), dtype=np.float16), 2, 0)
         raw_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
