@@ -41,6 +41,7 @@ import os
 from PIL import Image
 import numpy as np
 import re
+from tqdm.auto import tqdm
 
 # Data loading and preprocessing utils
 
@@ -51,7 +52,7 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
     if rgb:
         patch_size += (3,) # 3rd dimension for RGB
     
-    for image_subpath in image_subpaths:
+    for image_subpath in tqdm(image_subpaths):
         image_path = os.path.join(images_dir, image_subpath)
         image = np.array(Image.open(image_path).convert("RGB"), dtype=np.uint8)
 
@@ -64,10 +65,6 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
                     patch = patches[x, y, 0, ...]
                 else:
                     patch = patches[x, y, ...]
-                
-                print("patches:", patches.shape)
-                print("patch:", patch.shape)
-                
 
                 patch = Image.fromarray(patch)
 
