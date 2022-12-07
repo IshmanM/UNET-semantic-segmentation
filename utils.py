@@ -32,7 +32,7 @@
 ##############################################
 
 import torch
-from torch import nn
+from torch import nn, cuda
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as trans
@@ -144,9 +144,12 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
 
 
 def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
-               optimizer: torch.optim.Optimizer, device: torch.device = "cuda"):
+               optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler,
+               device: torch.device = "cuda"):
     """
-    Enable train mode and train model for 1 epoch
+    Enable train mode and train model for 1 epoch.
+    Uses autocasting to improve perfomance & maintain accuracy during mixed precision training.
+    Uses gradient scaling to prevent underflow of float16 values.
     """
     model.train()
 
@@ -156,25 +159,27 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     for x, y in dataloader:
         x, y = x.to(device), y.to(device)
         
-        # Forward step
-        y_logits = model(x)
-        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
+        with cuda.amp.autocast():
+            # Forward step
+            y_logits = model(x)
+            y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
+        
+            # Compute accuracy and loss
+            batch_size = y.shape[0] # Batch length may differ for the final batch
+            data_size += batch_size
 
-        # Compute accuracy and loss
-        batch_size = y.shape[0] # Batch length may differ for the final batch
-        data_size += batch_size
-
-        batch_loss = loss_function(y_logits, y)
-        loss += batch_loss*batch_size
-        batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
-        accuracy += batch_accuracy
-        dice_coeff += batch_dice_coeff
+            batch_loss = loss_function(y_logits, y)
+            loss += batch_loss*batch_size
+            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+            accuracy += batch_accuracy
+            dice_coeff += batch_dice_coeff
 
         # Backward step
-        optimizer.zero_grad()
-        batch_loss.backward()
-        optimizer.step()
-    
+        optimizer.zero_grad()    
+        scaler.scale(batch_loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
     loss /= data_size
     accuracy /= data_size
     dice_coeff /= data_size
