@@ -23,7 +23,10 @@ if __name__ == "__main__":
 
     load_dotenv('.env')
 
-    PATCH_SIZE = (1000, 1000)
+    PATCH_WIDTH = int(os.environ["PATCH_WIDTH"])
+    PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
+    PATCH_SIZE = (PATCH_WIDTH, PATCH_HEIGHT)
+    
     STEP = 1000
 
     IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
