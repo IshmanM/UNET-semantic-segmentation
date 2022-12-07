@@ -144,8 +144,8 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
 
 
 def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
-               optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler,
-               device: torch.device = "cuda"):
+          optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler,
+          device: torch.device = "cuda"):
     """
     Enable train mode and train model for 1 epoch.
     Uses autocasting to improve perfomance & maintain accuracy during mixed precision training.
