@@ -22,7 +22,7 @@ import os
 
 load_dotenv('.env')
 
-# Hyperpetameters and globals
+# Globals and hyperparameters
 
 PATCH_WIDTH = int(os.environ["PATCH_WIDTH"])
 PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
@@ -39,7 +39,7 @@ PATCHIFY_QUEUE = [{"name":"TRAIN_IMAGES", "save_type":IMAGE_SAVE_TYPE},
                   {"name":"TEST_MASKS", "save_type":MASK_SAVE_TYPE}, 
                   {"name":"VALIDATION_IMAGES", "save_type":IMAGE_SAVE_TYPE}, 
                   {"name":"VALIDATION_MASKS", "save_type":MASK_SAVE_TYPE}]
-                  
+
 
 if __name__ == "__main__":
                       
