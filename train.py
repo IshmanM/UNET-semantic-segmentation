@@ -24,6 +24,7 @@ import numpy as np
 import os
 import pandas as pd
 import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 from model import UNET_model
 
@@ -32,7 +33,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 
 import torch
-from torch import nn
+from torch import nn, cuda
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -41,9 +42,9 @@ from torchvision import datasets
 from torchvision import transforms
 
 from timeit import default_timer as timer 
-from tqdm.auto import tqdm # for progress bar
+from tqdm.auto import tqdm
 
-from utils import semanticDroneDataset_dataloader
+from utils import semanticDroneDataset_dataloader, train, test
 from dotenv import load_dotenv
 
 
@@ -68,12 +69,14 @@ MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 NUM_WORKERS = 4
 PIN_MEMORY = True
 BATCH_SIZE = 1
+NUM_EPOCHS = 1
 MODEL_IN_CHANNELS = 3
 MODEL_HIDDEN_CHANNELS = [64, 128, 256, 512]
 MODEL_CONV_PADDING = 1
 SGD_LEARNING_RATE = 0.01
 SGD_MOMENTUM = 0.99
 SGD_DAMPENING = 0.0
+
 
 if __name__ == "__main__":
 
@@ -89,19 +92,19 @@ if __name__ == "__main__":
     NUM_CLASSES = COLORMAP_DF.shape[0]
 
     train_transform = A.Compose(
-       [A.resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
+       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        A.pytorch.ToTensorV2()]
+        ToTensorV2()],
     )
     validation_transform = A.Compose(
-       [A.resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
+       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        A.pytorch.ToTensorV2()]
+        ToTensorV2()],
     )
     test_transform = A.Compose(
-       [A.resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
+       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        A.pytorch.ToTensorV2()]
+        ToTensorV2()],
     )
 
     train_loader = semanticDroneDataset_dataloader(
@@ -110,7 +113,7 @@ if __name__ == "__main__":
         colormap=COLORMAP, shuffle=True, transform=train_transform,
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
-    validation_loader = semanticDroneDataset_dataloader(
+    val_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_VALIDATION_IMAGES_DIR, masks_dir=PATCHIFIED_VALIDATION_MASKS_DIR,
         image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
         colormap=COLORMAP, shuffle=False, transform=validation_transform,
@@ -133,3 +136,22 @@ if __name__ == "__main__":
     
     loss_function = nn.CrossEntropyLoss()
 
+    # Training
+    
+    scaler = cuda.amp.GradScaler()
+
+    epochs_loop = tqdm(range(NUM_EPOCHS))
+    for epoch in epochs_loop:
+        train_loss, train_accuracy, train_dice_coeff = train(model=model, dataloader=train_loader, 
+                                                             loss_function=loss_function, 
+                                                             optimizer=optimizer, 
+                                                             scaler=scaler, 
+                                                             device=DEVICE)
+        
+        val_loss, val_accuracy, val_dice_coeff = test(model=model, dataloader=val_loader, 
+                                                      loss_function=loss_function, 
+                                                      device=DEVICE)
+
+        epochs_loop.set_description(f"Epoch: {epoch}/{NUM_EPOCHS}")
+        epochs_loop.set_postfix(train_loss=train_loss, train_accuracy=train_accuracy, train_dice_coeff=train_dice_coeff,
+                                val_loss=val_loss, val_accuracy=val_accuracy, val_dice_coeff=val_dice_coeff)
