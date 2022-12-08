@@ -37,7 +37,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import transform_multiple as TM
 from datasets import semanticDroneDataset
-import albumentations as A
 from patchify import patchify
 import os
 from PIL import Image
