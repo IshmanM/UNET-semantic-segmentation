@@ -15,7 +15,7 @@
 #   update requirements.txt & import cleanup
 #   add more transformations
 #
-#   !! Convert labels to images and save in test()
+#   !! Convert labels to images and save in test(), optional feature
 #   !! Save model checkpoints
 ##############################################
 
@@ -81,8 +81,10 @@ SGD_DAMPENING = 0.0
 
 if __name__ == "__main__":
 
-    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     torch.manual_seed(42) # Set random seed
+    
+    print(DEVICE)
 
     # Load and preprocess data
 
@@ -122,8 +124,11 @@ if __name__ == "__main__":
 
     # Instantiate UNET_model, optimizer, and loss function
 
-    model = UNET_model(in_channels=MODEL_IN_CHANNELS, out_channels=NUM_CLASSES, 
-                       hidden_channels=MODEL_HIDDEN_CHANNELS, conv_padding=MODEL_CONV_PADDING)
+    model = UNET_model(in_channels=MODEL_IN_CHANNELS, 
+                       out_channels=NUM_CLASSES, 
+                       hidden_channels=MODEL_HIDDEN_CHANNELS, 
+                       conv_padding=MODEL_CONV_PADDING
+                       ).to(DEVICE)
 
     optimizer = torch.optim.SGD(params=model.parameters(), lr=SGD_LEARNING_RATE, 
                                 momentum=SGD_MOMENTUM, dampening=SGD_DAMPENING)
@@ -134,8 +139,9 @@ if __name__ == "__main__":
     
     scaler = cuda.amp.GradScaler()
 
-    epochs_loop = tqdm(range(NUM_EPOCHS))
-    for epoch in epochs_loop:
+    for epoch in range(NUM_EPOCHS):
+        print(f"Epoch: {epoch}/{NUM_EPOCHS}")
+
         train_loss, train_accuracy, train_dice_coeff = train(model=model, dataloader=train_loader, 
                                                              loss_function=loss_function, 
                                                              optimizer=optimizer, 
@@ -146,6 +152,4 @@ if __name__ == "__main__":
                                                       loss_function=loss_function, 
                                                       device=DEVICE)
 
-        epochs_loop.set_description(f"Epoch: {epoch}/{NUM_EPOCHS}")
-        epochs_loop.set_postfix(train_loss=train_loss, train_accuracy=train_accuracy, train_dice_coeff=train_dice_coeff,
-                                val_loss=val_loss, val_accuracy=val_accuracy, val_dice_coeff=val_dice_coeff)
+    print("Done the loop")

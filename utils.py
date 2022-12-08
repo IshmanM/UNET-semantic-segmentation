@@ -44,7 +44,7 @@ import numpy as np
 import re
 from tqdm.auto import tqdm
 
-# Data loading and preprocessing utils
+# Image data handling utils
 
 def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_size: tuple, step: int, rgb: bool = True):
     """
@@ -110,6 +110,8 @@ def semanticDroneDataset_dataloader(
     return ds_loader
 
 
+
+
 # Training utils
 
 def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
@@ -117,7 +119,7 @@ def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
     Compute dice coefficient, a useful metric for semantic segmentation 
     """
     SMOOTH = 1e-8 # To avoid division by 0
-    return (2*(y*y_predicted).sum()) / ((y + y_predicted).sum() + SMOOTH)
+    return ((2*(y*y_predicted).sum()) / ((y + y_predicted).sum() + SMOOTH)).item()
 
 
 def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
@@ -155,7 +157,8 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     loss, accuracy, dice_coeff = 0, 0, 0
     data_size = 0
 
-    for x, y in dataloader:
+    dataloader_loop = tqdm(dataloader)
+    for x, y in dataloader_loop:
         x, y = x.to(device), y.to(device)
         
         with cuda.amp.autocast():
@@ -179,6 +182,10 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         scaler.step(optimizer)
         scaler.update()
 
+        dataloader_loop.set_postfix(train_loss=(100*loss/data_size), 
+                                    train_accuracy=(100*accuracy/data_size),
+                                    train_dice_coeff=(100*dice_coeff/data_size))
+
     loss /= data_size
     accuracy /= data_size
     dice_coeff /= data_size
@@ -196,7 +203,8 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     loss, accuracy, dice_coeff = 0, 0, 0
     data_size = 0
 
-    for x, y in dataloader:
+    dataloader_loop = tqdm(dataloader)
+    for x, y in dataloader_loop:
         x, y = x.to(device), y.to(device)
 
         # Forward step
@@ -211,6 +219,10 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
         accuracy += batch_accuracy
         dice_coeff += batch_dice_coeff
+    
+        dataloader_loop.set_postfix(test_loss=(100*loss/data_size), 
+                                    test_accuracy=(100*accuracy/data_size),
+                                    test_dice_coeff=(100*dice_coeff/data_size))
 
     loss /= data_size
     accuracy /= data_size
