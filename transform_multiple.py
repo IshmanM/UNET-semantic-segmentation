@@ -36,7 +36,7 @@ class transform_multiple(ABC):
 
 class normalize(transform_multiple):
     """
-    Transformation for normalizing images and other tensors.
+    Transformation for normalizing images and other torch.Tensor objects.
     """
     def __init__(self, mean: list[float] = [0.0], std: list[float] = [255.0], inplace: bool = False):
         super().__init__()
@@ -53,7 +53,7 @@ class normalize(transform_multiple):
 
 class center_crop(transform_multiple):
     """
-    Transformation for cropping height and width (dimensions [-2:]) of input tensors. 
+    Transformation for cropping height and width (dimensions [-2:]) of inputted torch.Tensor objects. 
     """  
     def __init__(self, output_size: list[int]):
         super().__init__()
