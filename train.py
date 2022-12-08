@@ -17,6 +17,8 @@
 #
 #   !! Convert labels to images and save in test(), optional feature
 #   !! Save model checkpoints
+#
+#   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
 
 
