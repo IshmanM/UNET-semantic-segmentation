@@ -3,7 +3,7 @@
 # @date: 03/12/2022
 # 
 # @description:
-#   Utils for UNET model training
+#   Dataset class for Semantic Drone Dataset
 #
 # @resources:
 #   Institute of Computer Graphics and Vision. (2019). Semantic Drone Dataset. 
@@ -22,7 +22,7 @@
 #
 #   Consider dynamic patchifying
 #
-#   # !! roll axis causing transformation errs, need to fix
+#   # !! roll axis causing transformation errs, need to fix. Consider alt to albemutations.
 #
 ##############################################
 
@@ -30,19 +30,25 @@ import os
 from PIL import Image
 import numpy as np
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
-import albumentations as A
-
+from transform_multiple import transform_multiple
 
 class semanticDroneDataset(Dataset):
-    def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, colormap: list, transform: A.Compose = None):
+    """
+    Dataset class to access images and masks from the Semantic Drone Dataset. 
+    RGB masks are converted to multi-channel masks for multi-class semantic segmentation.
+    Inputted transformations are applied to the images and converted masks.
+    """
+    def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, 
+                 colormap: list[int], transforms: list[transform_multiple] = None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.mask_save_type = mask_save_type
         self.image_save_type = image_save_type
         self.images = os.listdir(image_dir)
         self.colormap = colormap
-        self.transform = transform
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.images)
@@ -52,20 +58,21 @@ class semanticDroneDataset(Dataset):
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(self.image_save_type, self.mask_save_type))
 
         image = np.rollaxis(np.array(Image.open(image_path).convert("RGB"), dtype=np.float16), 2, 0)
-        raw_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
+        rgb_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
 
+        # Generate multi-channel mask from the rgb mask
         mask = []
-        bitmask = np.empty(raw_mask.shape, dtype=np.float16)
+        bitmask = np.empty(rgb_mask.shape, dtype=np.float16)
         for label_rgb in self.colormap:
             for color in range(3):
                 bitmask[color] = label_rgb[color]
-            label_map = np.all(np.equal(raw_mask, bitmask), axis=0)
+            label_map = np.all(np.equal(rgb_mask, bitmask), axis=0)
             mask.append(label_map.astype("float16"))
-        mask = np.stack(mask, axis=0)
+        mask = torch.tensor(np.stack(mask, axis=0))
 
-        if self.transform:                               # !! roll axis causing transformation errs, need to fix
-            # Augment image and mask
-            transformations = self.transform(image=image, mask=mask)
-            image, mask = transformations["image"], transformations["mask"]
+        # Augment image and mask
+        for transform in self.transforms:
+            transformed_tensors = transform(image=image, mask=mask)
+            image, mask = transformed_tensors["image"], transformed_tensors["mask"]
 
         return image, mask
