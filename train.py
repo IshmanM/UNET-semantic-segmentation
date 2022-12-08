@@ -12,13 +12,11 @@
 #
 #
 # @ToDo:
-#   !! Modify utils.py according to input labels shape
+#   update requirements.txt & import cleanup
+#   add more transformations
 #
-#   need to adjust run_patchify.py, main.py, utils.py, datasets.py to new semantic_drone_dataset stucture
-#   
-#   update requirements.txt 
-#
-#   incorporate transform_multiple, remove albumentations
+#   !! Convert labels to images and save in test()
+#   !! Save model checkpoints
 ##############################################
 
 
@@ -27,8 +25,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 import transform_multiple as TM
 
 from model import UNET_model
