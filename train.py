@@ -14,7 +14,11 @@
 # @ToDo:
 #   !! Modify utils.py according to input labels shape
 #
-#   need to adjust run_patchify.py, main.py, utils.py, datasets.py to new semantic_drone_dataset stucture 
+#   need to adjust run_patchify.py, main.py, utils.py, datasets.py to new semantic_drone_dataset stucture
+#   
+#   update requirements.txt 
+#
+#   incorporate transform_multiple, remove albumentations
 ##############################################
 
 
@@ -25,6 +29,7 @@ import os
 import pandas as pd
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import transform_multiple as TM
 
 from model import UNET_model
 
@@ -90,39 +95,32 @@ if __name__ == "__main__":
     COLORMAP = COLORMAP_DF.loc[:,[" r"," g"," b"]].values.tolist()
     CLASSES = COLORMAP_DF.loc[:,"name"].values.tolist()
     NUM_CLASSES = COLORMAP_DF.shape[0]
+    
+    train_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                        TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
-    train_transform = A.Compose(
-       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
-        A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        ToTensorV2()],
-    )
-    validation_transform = A.Compose(
-       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
-        A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        ToTensorV2()],
-    )
-    test_transform = A.Compose(
-       [A.Resize(width=PATCH_WIDTH, height=PATCH_HEIGHT),
-        A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        ToTensorV2()],
-    )
+    validation_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                             TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
+
+    test_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                       TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
     train_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_TRAIN_IMAGES_DIR, masks_dir=PATCHIFIED_TRAIN_MASKS_DIR,
         image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
-        colormap=COLORMAP, shuffle=True, transform=train_transform,
+        colormap=COLORMAP, shuffle=True, transforms=train_transforms,
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
     val_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_VALIDATION_IMAGES_DIR, masks_dir=PATCHIFIED_VALIDATION_MASKS_DIR,
         image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
-        colormap=COLORMAP, shuffle=False, transform=validation_transform,
+        colormap=COLORMAP, shuffle=False, transforms=validation_transforms,
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
     test_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_TEST_IMAGES_DIR, masks_dir=PATCHIFIED_TEST_MASKS_DIR,
         image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
-        colormap=COLORMAP, shuffle=False, transform=test_transform,
+        colormap=COLORMAP, shuffle=False, transforms=test_transforms,
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
 
