@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-import transform_multiple as TM
+import transform_multiple as TFM
 
 class semanticDroneDataset(Dataset):
     """
@@ -41,7 +41,7 @@ class semanticDroneDataset(Dataset):
     Inputted transformations are applied to the images and converted masks.
     """
     def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, 
-                 colormap: list[int], transforms: list[TM.transform_multiple] = None):
+                 colormap: list[int], transforms: list[TFM.transform_multiple] = None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.mask_save_type = mask_save_type
@@ -74,7 +74,11 @@ class semanticDroneDataset(Dataset):
 
         # Augment image and mask
         for transform in self.transforms:
-            transformed_tensors = transform(image=image, mask=mask)
-            image, mask = transformed_tensors["image"], transformed_tensors["mask"]
+            if transform.modifies_vals_or_idxs == "vals":
+                transformed_tensors = transform(image=image)
+                image = transformed_tensors["image"]
+            else:
+                transformed_tensors = transform(image=image, mask=mask)
+                image, mask = transformed_tensors["image"], transformed_tensors["mask"]
 
         return image, mask

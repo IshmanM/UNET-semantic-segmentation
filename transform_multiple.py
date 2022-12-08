@@ -25,9 +25,12 @@ import random
 class transform_multiple(ABC):
     """
     Abstract class for applying the same transformation to multiple torch.Tensor objects.
+    If a transformation modifies elements value, it should not modify element indexes, and vice-versa.
     """
-    def __init__(self):
-        pass
+    def __init__(self, modifies_vals_or_idxs: str):
+        if modifies_vals_or_idxs != "idxs" and modifies_vals_or_idxs != "vals":
+            raise ValueError("modifies_vals_or_idxs must be 'vals' or 'idxs'")
+        self.modifies_vals_or_idxs = modifies_vals_or_idxs
     
     @abstractmethod
     def __call__(self, **tensors: torch.Tensor):
@@ -39,7 +42,7 @@ class normalize(transform_multiple):
     Transformation for normalizing images and other torch.Tensor objects.
     """
     def __init__(self, mean: list[float] = [0.0], std: list[float] = [255.0], inplace: bool = False):
-        super().__init__()
+        super().__init__(modifies_vals_or_idxs="vals")
         self.mean = mean
         self.std = std
         self.inplace = inplace
@@ -57,7 +60,7 @@ class center_crop(transform_multiple):
     Transformation for cropping height and width (dimensions [-2:]) of inputted torch.Tensor objects. 
     """  
     def __init__(self, output_size: list[int]):
-        super().__init__()
+        super().__init__(modifies_vals_or_idxs="idxs")
         self.output_size = output_size
 
     def __call__(self, **tensors: torch.Tensor):

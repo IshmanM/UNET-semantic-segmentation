@@ -35,7 +35,7 @@ import torch
 from torch import nn, cuda
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import transform_multiple as TM
+import transform_multiple as TFM
 from datasets import semanticDroneDataset
 from patchify import patchify
 import os
@@ -87,7 +87,7 @@ def semanticDroneDataset_dataloader(
     mask_save_type: str,
     colormap: list,
     shuffle: bool = False,
-    transforms: list[TM.transform_multiple] = None,
+    transforms: list[TFM.transform_multiple] = None,
     batch_size: int = 1,
     num_workers = 4,
     pin_memory = True ):
@@ -128,7 +128,7 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     """
     # Cropping may be necessary if no padding is used in model training
     if y.shape != y_predicted.shape:
-        crop = TM.center_crop(size=y_predicted.shape[-2:])
+        crop = TFM.center_crop(size=y_predicted.shape[-2:])
         y = crop(y)
 
     accuracy = torch.mean((y == y_predicted).float()).item()
@@ -171,7 +171,7 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
             data_size += batch_size
 
             batch_loss = loss_function(y_logits, y)
-            loss += batch_loss*batch_size
+            loss += batch_loss.item()*batch_size
             batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
             accuracy += batch_accuracy
             dice_coeff += batch_dice_coeff
@@ -182,9 +182,12 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         scaler.step(optimizer)
         scaler.update()
 
-        dataloader_loop.set_postfix(train_loss=(100*loss/data_size), 
-                                    train_accuracy=(100*accuracy/data_size),
-                                    train_dice_coeff=(100*dice_coeff/data_size))
+
+        print("batch_loss:", batch_loss*100)
+
+        dataloader_loop.set_postfix(train_loss=(loss/data_size), 
+                                    train_accuracy=(accuracy/data_size),
+                                    train_dice_coeff=(dice_coeff/data_size))
 
     loss /= data_size
     accuracy /= data_size
@@ -203,26 +206,27 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     loss, accuracy, dice_coeff = 0, 0, 0
     data_size = 0
 
-    dataloader_loop = tqdm(dataloader)
-    for x, y in dataloader_loop:
-        x, y = x.to(device), y.to(device)
+    with torch.no_grad():
+        dataloader_loop = tqdm(dataloader)
+        for x, y in dataloader_loop:
+            x, y = x.to(device), y.to(device)
 
-        # Forward step
-        y_logits = model(x)
-        y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
+            # Forward step
+            y_logits = model(x)
+            y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
 
-        # Compute accuracy and loss
-        batch_size = y.shape[0] # Batch length may differ for the final batch
-        data_size += batch_size
+            # Compute accuracy and loss
+            batch_size = y.shape[0] # Batch length may differ for the final batch
+            data_size += batch_size
 
-        loss += loss_function(y_logits, y)*batch_size
-        batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
-        accuracy += batch_accuracy
-        dice_coeff += batch_dice_coeff
-    
-        dataloader_loop.set_postfix(test_loss=(100*loss/data_size), 
-                                    test_accuracy=(100*accuracy/data_size),
-                                    test_dice_coeff=(100*dice_coeff/data_size))
+            loss += loss_function(y_logits, y).item()*batch_size
+            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+            accuracy += batch_accuracy
+            dice_coeff += batch_dice_coeff
+        
+            dataloader_loop.set_postfix(test_loss=(loss/data_size), 
+                                        test_accuracy=(accuracy/data_size),
+                                        test_dice_coeff=(dice_coeff/data_size))
 
     loss /= data_size
     accuracy /= data_size

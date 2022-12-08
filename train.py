@@ -25,7 +25,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import os
 import pandas as pd
-import transform_multiple as TM
+import transform_multiple as TFM
 
 from model import UNET_model
 
@@ -94,14 +94,14 @@ if __name__ == "__main__":
     CLASSES = COLORMAP_DF.loc[:,"name"].values.tolist()
     NUM_CLASSES = COLORMAP_DF.shape[0]
     
-    train_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
-                        TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
+    train_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                        TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
-    validation_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
-                             TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
+    validation_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                             TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
-    test_transforms = [TM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
-                       TM.normalize(mean=[0.0], std=[255.0], inplace=False)]
+    test_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                       TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
     train_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_TRAIN_IMAGES_DIR, masks_dir=PATCHIFIED_TRAIN_MASKS_DIR,
