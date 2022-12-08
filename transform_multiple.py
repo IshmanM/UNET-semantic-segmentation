@@ -42,6 +42,7 @@ class normalize(transform_multiple):
         super().__init__()
         self.mean = mean
         self.std = std
+        self.inplace = inplace
 
     def __call__(self, **tensors: torch.Tensor):
         transformed_tensors = {}

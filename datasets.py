@@ -60,6 +60,8 @@ class semanticDroneDataset(Dataset):
         image = np.rollaxis(np.array(Image.open(image_path).convert("RGB"), dtype=np.float16), 2, 0)
         rgb_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
 
+        image = torch.from_numpy(image)
+
         # Generate multi-channel mask from the rgb mask
         mask = []
         bitmask = np.empty(rgb_mask.shape, dtype=np.float16)
@@ -68,7 +70,7 @@ class semanticDroneDataset(Dataset):
                 bitmask[color] = label_rgb[color]
             label_map = np.all(np.equal(rgb_mask, bitmask), axis=0)
             mask.append(label_map.astype("float16"))
-        mask = torch.tensor(np.stack(mask, axis=0))
+        mask = torch.from_numpy(np.stack(mask, axis=0))
 
         # Augment image and mask
         for transform in self.transforms:
