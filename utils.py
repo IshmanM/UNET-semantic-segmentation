@@ -33,9 +33,9 @@
 
 import torch
 from torch import nn, cuda
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-import torchvision.transforms as trans
+import transform_multiple as TM
 from datasets import semanticDroneDataset
 import albumentations as A
 from patchify import patchify
@@ -88,7 +88,7 @@ def semanticDroneDataset_dataloader(
     mask_save_type: str,
     colormap: list,
     shuffle: bool = False,
-    transform: A.Compose = None,
+    transforms: list[TM.transform_multiple] = None,
     batch_size: int = 1,
     num_workers = 4,
     pin_memory = True ):
@@ -100,7 +100,7 @@ def semanticDroneDataset_dataloader(
                               image_save_type=image_save_type, 
                               mask_save_type=mask_save_type, 
                               colormap=colormap, 
-                              transform=transform)
+                              transforms=transforms)
 
     ds_loader = DataLoader(dataset=ds, 
                            batch_size=batch_size, 
@@ -127,7 +127,7 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     """
     # Cropping may be necessary if no padding is used in model training
     if y.shape != y_predicted.shape:
-        crop = trans.CenterCrop(size=y_predicted.shape[-2:])
+        crop = TM.center_crop(size=y_predicted.shape[-2:])
         y = crop(y)
 
     accuracy = torch.mean((y == y_predicted).float()).item()

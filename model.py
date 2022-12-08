@@ -23,6 +23,7 @@
 import torch
 from torch import nn
 import torchvision.transforms as trans
+import transform_multiple as TM
 
 
 class conv_unit(nn.Module):
@@ -82,7 +83,7 @@ class decode_unit(nn.Module):
 
         # Skip layers may require cropping before concatenation to passing data if no padding is used on conv units
         if skip_layer.shape != x.shape:
-            # crop = trans.CenterCrop(size=x.shape[-2:])
+            # crop = TM.center_crop(size=x.shape[-2:])
             # skip_layer = crop(skip_layer)
             x = trans.functional.resize(x, size=skip_layer.shape[-2:])
         x = torch.cat(tensors=(skip_layer, x), dim=1)
