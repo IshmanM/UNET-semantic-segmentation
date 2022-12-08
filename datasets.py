@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
-from transform_multiple import transform_multiple
+import transform_multiple as TM
 
 class semanticDroneDataset(Dataset):
     """
@@ -41,7 +41,7 @@ class semanticDroneDataset(Dataset):
     Inputted transformations are applied to the images and converted masks.
     """
     def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, 
-                 colormap: list[int], transforms: list[transform_multiple] = None):
+                 colormap: list[int], transforms: list[TM.transform_multiple] = None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.mask_save_type = mask_save_type
