@@ -28,7 +28,7 @@ PATCH_WIDTH = int(os.environ["PATCH_WIDTH"])
 PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
 PATCH_SIZE = (PATCH_WIDTH, PATCH_HEIGHT)
 
-STEP = 1000
+STEP = 500
 
 IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
@@ -44,7 +44,8 @@ PATCHIFY_QUEUE = [{"name":"TRAIN_IMAGES", "save_type":IMAGE_SAVE_TYPE},
 if __name__ == "__main__":
                       
     for image_set in PATCHIFY_QUEUE:
-        
+        print("Patchifying " + image_set["name"])
+
         images_dir = os.environ[image_set["name"] + "_DIR"]
         patches_dir = os.environ["PATCHIFIED_" + image_set["name"] + "_DIR"]
 
