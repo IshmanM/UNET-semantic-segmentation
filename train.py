@@ -19,6 +19,8 @@
 #   !! Save model checkpoints
 #   !! Save metrics
 #
+#   !! test save_prediction_as_rgb_image()
+#
 #   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
 

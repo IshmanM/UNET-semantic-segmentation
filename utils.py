@@ -35,6 +35,7 @@ import torch
 from torch import nn, cuda
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchvision.utils import save_image
 import transform_multiple as TFM
 from datasets import semanticDroneDataset
 from patchify import patchify
@@ -103,25 +104,25 @@ def semanticDroneDataset_dataloader(images_dir: str, masks_dir: str, image_save_
     return ds_loader
 
 
-def save_prediction_as_rgb_image(prediction: torch.Tensor, colormap: list[int], 
+def save_mask_as_rgb_image(mask: torch.Tensor, colormap: list[int], 
                                  save_dir: str, filename: str, save_type: str):
     """
-    Convert predicted multi-channel masks to RGB masks and save result as an image. 
+    Convert multi-channel masks to RGB masks and save result as an image. 
     """
     save_path = os.path.join(save_dir, filename, save_type)
 
-    # num_labels = prediction.shape[0]
-    # prediction = prediction.argmax(dim=0)
-    # prediction = prediction.stack((prediction, prediction, prediction))
+    num_labels = mask.shape[0]
+    mask = mask.argmax(dim=0)
+    mask = mask.stack((mask, mask, mask))
     
-    # rgb_mask = []
-    # for label in range(num_labels):
-    #     label_map = (prediction == label).float()
-    #     for color in range(3):
-    #         label_map[color]*colormap[label][color]
+    rgb_mask = torch.zeros(size=mask.shape)
+    for label in range(num_labels):
+        label_map = (mask == label).float()
+        for color in range(3):
+            rgb_mask[color] += label_map[color]*colormap[label][color]
+    
+    save_image(rgb_mask, fp=save_path)
         
-
-
 
 # Training utils
 
@@ -240,11 +241,11 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, dev
             # Save predictions
             if prediction_save_dir != None:
                 for batch in range(batch_size):
-                    save_prediction_as_rgb_image(prediction=y_predicted[batch], 
-                                                 colormap=colormap, 
-                                                 save_dir=prediction_save_dir,
-                                                 filename=filename[batch],
-                                                 save_type=save_type)
+                    save_mask_as_rgb_image(mask=y_predicted[batch], 
+                                           colormap=colormap, 
+                                           save_dir=prediction_save_dir,
+                                           filename=filename[batch],
+                                           save_type=save_type)
 
     loss /= data_size
     accuracy /= data_size
