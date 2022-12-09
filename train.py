@@ -15,8 +15,9 @@
 #   update requirements.txt & import cleanup
 #   add more transformations
 #
-#   !! Convert labels to images and save in test(), optional feature
+#   !! Convert labels to images and save in test(), and cat using unpatchify
 #   !! Save model checkpoints
+#   !! Save metrics
 #
 #   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################

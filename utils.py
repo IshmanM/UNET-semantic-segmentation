@@ -46,7 +46,8 @@ from tqdm.auto import tqdm
 
 # Image data handling utils
 
-def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_size: tuple, step: int, rgb: bool = True):
+def patchify_images(images_dir: str, patches_dir: str, save_type: str, 
+                    patch_size: tuple, step: int, rgb: bool = True):
     """
     Save patches of large images in desired directory. 
     Compatible with both RGB and single-channel (typically greyscale) images.
@@ -75,22 +76,14 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str, patch_siz
 
                 patch = Image.fromarray(patch)
 
-                patch_subpath = re.sub('\.[0-9A-Za-z]*','',image_subpath) + '_' + str(x) + str(y) + '.' + save_type
+                patch_subpath = re.sub('\.[0-9A-Za-z]*', '', image_subpath) + '_' + str(x) + str(y) + '.' + save_type
                 patch_path = os.path.join(patches_dir, patch_subpath)
                 patch.save(patch_path)
             
             
-def semanticDroneDataset_dataloader(
-    images_dir: str,
-    masks_dir: str,
-    image_save_type: str,
-    mask_save_type: str,
-    colormap: list,
-    shuffle: bool = False,
-    transforms: list[TFM.transform_multiple] = None,
-    batch_size: int = 1,
-    num_workers = 4,
-    pin_memory = True ):
+def semanticDroneDataset_dataloader(images_dir: str, masks_dir: str, image_save_type: str, mask_save_type: str,
+                                    colormap: list, shuffle: bool = False, transforms: list[TFM.transform_multiple] = None,
+                                    batch_size: int = 1, num_workers = 4, pin_memory = True):
     """
     Generate train, validation, and test DataLoaders of desired split sizes. 
     """
@@ -109,6 +102,24 @@ def semanticDroneDataset_dataloader(
   
     return ds_loader
 
+
+def save_prediction_as_rgb_image(prediction: torch.Tensor, colormap: list[int], 
+                                 save_dir: str, filename: str, save_type: str):
+    """
+    Convert predicted multi-channel masks to RGB masks and save result as an image. 
+    """
+    save_path = os.path.join(save_dir, filename, save_type)
+
+    # num_labels = prediction.shape[0]
+    # prediction = prediction.argmax(dim=0)
+    # prediction = prediction.stack((prediction, prediction, prediction))
+    
+    # rgb_mask = []
+    # for label in range(num_labels):
+    #     label_map = (prediction == label).float()
+    #     for color in range(3):
+    #         label_map[color]*colormap[label][color]
+        
 
 
 
@@ -145,8 +156,7 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
 
 
 def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
-          optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler,
-          device: torch.device = "cuda"):
+          optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler, device: torch.device = "cuda"):
     """
     Enable train mode and train model for 1 epoch.
     Uses autocasting to improve perfomance & maintain accuracy during mixed precision training.
@@ -158,7 +168,7 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     data_size = 0
 
     dataloader_loop = tqdm(dataloader)
-    for x, y in dataloader_loop:
+    for x, y, filename in dataloader_loop:
         x, y = x.to(device), y.to(device)
         
         with cuda.amp.autocast():
@@ -194,10 +204,10 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     return loss, accuracy, dice_coeff
 
 
-def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
-              device: torch.device = "cuda"):
+def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, device: torch.device = "cuda", 
+         prediction_save_dir: str = None, save_type: str = None, colormap: list[int] = None):
     """
-    Disable train mode and test model
+    Disable train mode and test model. Optionally save predictions to a directory.
     """
     model.eval()
 
@@ -206,7 +216,7 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
 
     with torch.no_grad():
         dataloader_loop = tqdm(dataloader)
-        for x, y in dataloader_loop:
+        for x, y, filename in dataloader_loop:
             x, y = x.to(device), y.to(device)
 
             # Forward step
@@ -226,6 +236,15 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
             dataloader_loop.set_postfix(test_loss=(loss/data_size), 
                                         test_accuracy=(accuracy/data_size),
                                         test_dice_coeff=(dice_coeff/data_size))
+
+            # Save predictions
+            if prediction_save_dir != None:
+                for batch in range(batch_size):
+                    save_prediction_as_rgb_image(prediction=y_predicted[batch], 
+                                                 colormap=colormap, 
+                                                 save_dir=prediction_save_dir,
+                                                 filename=filename[batch],
+                                                 save_type=save_type)
 
     loss /= data_size
     accuracy /= data_size

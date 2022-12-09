@@ -46,17 +46,18 @@ class semanticDroneDataset(Dataset):
         self.mask_dir = mask_dir
         self.mask_save_type = mask_save_type
         self.image_save_type = image_save_type
-        self.images = os.listdir(image_dir)
+        self.image_subpaths = os.listdir(image_dir)
         self.colormap = colormap
         self.transforms = transforms
 
     def __len__(self):
-        return len(self.images)
+        return len(self.image_subpaths)
 
     def __getitem__(self, index):
-        image_path = os.path.join(self.image_dir, self.images[index])
-        mask_path = os.path.join(self.mask_dir, self.images[index].replace(self.image_save_type, self.mask_save_type))
-
+        image_path = os.path.join(self.image_dir, self.image_subpaths[index])
+        filename = self.image_subpaths[index].replace(('.' + self.image_save_type), '')
+        mask_path = os.path.join(self.mask_dir, (filename + '.' + self.mask_save_type))
+        
         image = np.rollaxis(np.array(Image.open(image_path).convert("RGB"), dtype=np.float16), 2, 0)
         rgb_mask = np.rollaxis(np.array(Image.open(mask_path).convert("RGB"), dtype=np.float16), 2, 0)
 
@@ -64,7 +65,7 @@ class semanticDroneDataset(Dataset):
 
         # Generate multi-channel mask from the rgb mask
         mask = []
-        bitmask = np.empty(rgb_mask.shape, dtype=np.float16)
+        bitmask = np.empty(shape=rgb_mask.shape, dtype=np.float16)
         for label_rgb in self.colormap:
             for color in range(3):
                 bitmask[color] = label_rgb[color]
@@ -81,4 +82,4 @@ class semanticDroneDataset(Dataset):
                 transformed_tensors = transform(image=image, mask=mask)
                 image, mask = transformed_tensors["image"], transformed_tensors["mask"]
 
-        return image, mask
+        return image, mask, filename
