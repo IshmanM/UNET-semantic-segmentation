@@ -109,19 +109,20 @@ def save_mask_as_rgb_image(mask: torch.Tensor, colormap: list[int],
     """
     Convert multi-channel masks to RGB masks and save result as an image. 
     """
-    save_path = os.path.join(save_dir, filename, save_type)
+    save_path = os.path.join(save_dir, (filename + '.' + save_type))
 
     num_labels = mask.shape[0]
     mask = mask.argmax(dim=0)
-    mask = mask.stack((mask, mask, mask))
-    
-    rgb_mask = torch.zeros(size=mask.shape)
+    rgb_mask = torch.zeros(size=((3,) + mask.shape))
+
     for label in range(num_labels):
         label_map = (mask == label).float()
+
         for color in range(3):
-            rgb_mask[color] += label_map[color]*colormap[label][color]
-    
-    save_image(rgb_mask, fp=save_path)
+            rgb_mask[color] += label_map*colormap[label][color]
+
+    rgb_mask /= 255.0 # save_image multiplies pixels by 255
+    save_image(tensor=rgb_mask, fp=save_path)
         
 
 # Training utils
