@@ -49,7 +49,7 @@ from torchvision import transforms
 from timeit import default_timer as timer 
 from tqdm.auto import tqdm
 
-from utils import semanticDroneDataset_dataloader, train, test, load_model, save_model
+from utils import semanticDroneDataset_dataloader, train, test, load_model, save_model, save_dict_as_json
 from dotenv import load_dotenv
 
 
@@ -61,8 +61,6 @@ COLORMAP_PATH = os.environ["COLORMAP_PATH"]
 
 PATCHIFIED_TRAIN_IMAGES_DIR = os.environ["PATCHIFIED_TRAIN_IMAGES_DIR"]
 PATCHIFIED_TRAIN_MASKS_DIR = os.environ["PATCHIFIED_TRAIN_MASKS_DIR"]
-PATCHIFIED_TEST_IMAGES_DIR = os.environ["PATCHIFIED_TEST_IMAGES_DIR"]
-PATCHIFIED_TEST_MASKS_DIR = os.environ["PATCHIFIED_TEST_MASKS_DIR"]
 PATCHIFIED_VALIDATION_IMAGES_DIR = os.environ["PATCHIFIED_VALIDATION_IMAGES_DIR"]
 PATCHIFIED_VALIDATION_MASKS_DIR =os.environ["PATCHIFIED_VALIDATION_MASKS_DIR"]
 
@@ -72,7 +70,8 @@ IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
 MODEL_LOAD_PATH = None
-MODEL_SAVE_PATH = "models\\model_v1.pth"
+MODEL_SAVE_PATH = "models\\model_v1\\model_v1.pth"
+HYPERPARAMETER_SAVE_PATH = "models\\model_v1\\model_v1.json"
 
 NUM_WORKERS = 4
 PIN_MEMORY = True
@@ -91,7 +90,7 @@ if __name__ == "__main__":
 
     DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     print("Using device: ", DEVICE)
-    
+
     torch.manual_seed(42) # Set random seed
 
     # Load and preprocess data
@@ -105,11 +104,8 @@ if __name__ == "__main__":
     train_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
                         TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
-    validation_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
-                             TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
-
-    test_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
-                       TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
+    val_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+                      TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
     train_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_TRAIN_IMAGES_DIR, masks_dir=PATCHIFIED_TRAIN_MASKS_DIR,
@@ -120,15 +116,28 @@ if __name__ == "__main__":
     val_loader = semanticDroneDataset_dataloader(
         images_dir=PATCHIFIED_VALIDATION_IMAGES_DIR, masks_dir=PATCHIFIED_VALIDATION_MASKS_DIR,
         image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
-        colormap=COLORMAP, shuffle=False, transforms=validation_transforms,
+        colormap=COLORMAP, shuffle=False, transforms=val_transforms,
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
-    test_loader = semanticDroneDataset_dataloader(
-        images_dir=PATCHIFIED_TEST_IMAGES_DIR, masks_dir=PATCHIFIED_TEST_MASKS_DIR,
-        image_save_type=IMAGE_SAVE_TYPE, mask_save_type=MASK_SAVE_TYPE,
-        colormap=COLORMAP, shuffle=False, transforms=test_transforms,
-        batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
-    )
+   
+    # Save hyperparameters for reference
+
+    hyperperameters = {
+        PATCH_WIDTH: PATCH_WIDTH,
+        PATCH_HEIGHT: PATCH_HEIGHT,
+        NUM_WORKERS: NUM_WORKERS,
+        PIN_MEMORY: PIN_MEMORY,
+        BATCH_SIZE: BATCH_SIZE,
+        NUM_EPOCHS: NUM_EPOCHS,
+        MODEL_IN_CHANNELS: MODEL_IN_CHANNELS, 
+        MODEL_HIDDEN_CHANNELS: MODEL_HIDDEN_CHANNELS,
+        MODEL_CONV_PADDING: MODEL_CONV_PADDING,
+        SGD_LEARNING_RATE: SGD_LEARNING_RATE,
+        SGD_MOMENTUM: SGD_MOMENTUM,
+        SGD_DAMPENING: SGD_DAMPENING,
+    }
+
+    save_dict_as_json(save_path=HYPERPARAMETER_SAVE_PATH, data=hyperperameters)
 
     # Instantiate UNET_model, optimizer, and loss function. Optionally load a saved model
 
@@ -161,7 +170,8 @@ if __name__ == "__main__":
                                                              scaler=scaler, 
                                                              device=DEVICE)
 
-        save_model(model_path=MODEL_SAVE_PATH, loss=train_loss, epoch=epoch, model=model, optimizer=optimizer)
+        save_model(save_path=MODEL_SAVE_PATH, loss=train_loss, 
+                   epoch=(epoch + last_epoch), model=model, optimizer=optimizer)
 
         val_loss, val_accuracy, val_dice_coeff = test(model=model, dataloader=val_loader, 
                                                       loss_function=loss_function, 

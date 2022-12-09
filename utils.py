@@ -44,6 +44,7 @@ from PIL import Image
 import numpy as np
 import re
 from tqdm.auto import tqdm
+import json
 
 # Image data handling utils
 
@@ -255,7 +256,7 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, dev
     return loss, accuracy, dice_coeff
 
 
-def save_model(model_path: str, epoch: int, loss: float, model: nn.Module, optimizer: torch.optim.Optimizer):
+def save_model(save_path: str, epoch: int, loss: float, model: nn.Module, optimizer: torch.optim.Optimizer):
     """
     Save model and optimizer state dicts, as well as last epoch and loss value.
     """
@@ -266,16 +267,16 @@ def save_model(model_path: str, epoch: int, loss: float, model: nn.Module, optim
         'loss': loss,
     }
 
-    torch.save(obj=checkpoint, f=model_path)
+    torch.save(obj=checkpoint, f=save_path)
 
 
 
-def load_model(model_path: str, model: nn.Module, optimizer: torch.optim.Optimizer = None):
+def load_model(load_path: str, model: nn.Module, optimizer: torch.optim.Optimizer = None):
     """
     Load model and optimizer state dicts from inputted path. 
     Return last epoch and loss value.
     """
-    checkpoint = torch.load(f=model_path)
+    checkpoint = torch.load(f=load_path)
     model.load_state_dict(checkpoint["model_state_dict"])
     if optimizer != None:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -284,3 +285,11 @@ def load_model(model_path: str, model: nn.Module, optimizer: torch.optim.Optimiz
     loss = float(checkpoint['loss'])
 
     return epoch, loss
+
+def save_dict_as_json(save_path: str, data: dict):
+    """
+    Save a python dict as a .json file.
+    """
+    data = json.dumps(data, indent=4)
+    with open(save_path, 'w') as json_file:
+        json_file.write(data)
