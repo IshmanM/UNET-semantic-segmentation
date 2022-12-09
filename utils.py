@@ -119,7 +119,7 @@ def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
     Compute dice coefficient, a useful metric for semantic segmentation 
     """
     SMOOTH = 1e-8 # To avoid division by 0
-    return ((2*(y*y_predicted).sum()) / ((y + y_predicted).sum() + SMOOTH)).item()
+    return (2*(y*y_predicted).sum().item() + SMOOTH) / ((y + y_predicted).sum().item() + SMOOTH)
 
 
 def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
@@ -141,7 +141,7 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
         dice_coeff += dice_coefficient(label_idxs_in_y, label_idxs_in_y_predicted)
     dice_coeff /= num_labels
 
-    return accuracy, dice_coeff
+    return (accuracy, dice_coeff)
 
 
 def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
@@ -172,7 +172,8 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
 
             batch_loss = loss_function(y_logits, y)
             loss += batch_loss.item()*batch_size
-            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])
+            batch_accuracy, batch_dice_coeff = batch_accuracy*batch_size, batch_dice_coeff*batch_size
             accuracy += batch_accuracy
             dice_coeff += batch_dice_coeff
 
@@ -181,9 +182,6 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         scaler.scale(batch_loss).backward()
         scaler.step(optimizer)
         scaler.update()
-
-
-        print("batch_loss:", batch_loss*100)
 
         dataloader_loop.set_postfix(train_loss=(loss/data_size), 
                                     train_accuracy=(accuracy/data_size),
@@ -220,7 +218,8 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
             data_size += batch_size
 
             loss += loss_function(y_logits, y).item()*batch_size
-            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])*batch_size
+            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])
+            batch_accuracy, batch_dice_coeff = batch_accuracy*batch_size, batch_dice_coeff*batch_size
             accuracy += batch_accuracy
             dice_coeff += batch_dice_coeff
         
