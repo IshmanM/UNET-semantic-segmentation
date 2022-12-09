@@ -19,7 +19,6 @@
 #   !! Save model checkpoints
 #   !! Save metrics
 #
-#   !! test save_prediction_as_rgb_image()
 #
 #   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
@@ -50,7 +49,7 @@ from torchvision import transforms
 from timeit import default_timer as timer 
 from tqdm.auto import tqdm
 
-from utils import semanticDroneDataset_dataloader, train, test
+from utils import semanticDroneDataset_dataloader, train, test, load_model, save_model
 from dotenv import load_dotenv
 
 
@@ -72,6 +71,9 @@ PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
 IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
+MODEL_LOAD_PATH = None
+MODEL_SAVE_PATH = "models\\model_v1.pth"
+
 NUM_WORKERS = 4
 PIN_MEMORY = True
 BATCH_SIZE = 4
@@ -88,9 +90,9 @@ SGD_DAMPENING = 0.0
 if __name__ == "__main__":
 
     DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    torch.manual_seed(42) # Set random seed
+    print("Using device: ", DEVICE)
     
-    print(DEVICE)
+    torch.manual_seed(42) # Set random seed
 
     # Load and preprocess data
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
         batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY
     )
 
-    # Instantiate UNET_model, optimizer, and loss function
+    # Instantiate UNET_model, optimizer, and loss function. Optionally load a saved model
 
     model = UNET_model(in_channels=MODEL_IN_CHANNELS, 
                        out_channels=NUM_CLASSES, 
@@ -140,6 +142,11 @@ if __name__ == "__main__":
                                 momentum=SGD_MOMENTUM, dampening=SGD_DAMPENING)
     
     loss_function = nn.CrossEntropyLoss()
+
+    if MODEL_LOAD_PATH != None:
+        last_epoch, last_train_loss = load_model(model_path=MODEL_LOAD_PATH, model=model, optimizer=optimizer)
+    else:
+        last_epoch = 0
 
     # Training
     
@@ -153,9 +160,9 @@ if __name__ == "__main__":
                                                              optimizer=optimizer, 
                                                              scaler=scaler, 
                                                              device=DEVICE)
-        
+
+        save_model(model_path=MODEL_SAVE_PATH, loss=train_loss, epoch=epoch, model=model, optimizer=optimizer)
+
         val_loss, val_accuracy, val_dice_coeff = test(model=model, dataloader=val_loader, 
                                                       loss_function=loss_function, 
                                                       device=DEVICE)
-
-    print("Done the loop")

@@ -253,3 +253,34 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, dev
     dice_coeff /= data_size
 
     return loss, accuracy, dice_coeff
+
+
+def save_model(model_path: str, epoch: int, loss: float, model: nn.Module, optimizer: torch.optim.Optimizer):
+    """
+    Save model and optimizer state dicts, as well as last epoch and loss value.
+    """
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }
+
+    torch.save(obj=checkpoint, f=model_path)
+
+
+
+def load_model(model_path: str, model: nn.Module, optimizer: torch.optim.Optimizer = None):
+    """
+    Load model and optimizer state dicts from inputted path. 
+    Return last epoch and loss value.
+    """
+    checkpoint = torch.load(f=model_path)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    if optimizer != None:
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    
+    epoch = int(checkpoint['epoch'])
+    loss = float(checkpoint['loss'])
+
+    return epoch, loss
