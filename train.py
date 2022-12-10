@@ -49,7 +49,7 @@ from torchvision import transforms
 from timeit import default_timer as timer 
 from tqdm.auto import tqdm
 
-from utils import semanticDroneDataset_dataloader, train, test, load_model, save_model, save_dict_as_json
+from utils import *
 from dotenv import load_dotenv
 
 
@@ -70,8 +70,9 @@ IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
 MODEL_LOAD_PATH = None
-MODEL_SAVE_PATH = "models\\model_v1\\model_v1.pth"
-HYPERPARAMETER_SAVE_PATH = "models\\model_v1\\model_v1.json"
+MODEL_SAVE_PATH = "models\\model_v1\\model\\model.pth"
+HYPERPARAMETER_SAVE_PATH = "models\\model_v1\\model.json"
+TRAIN_LOGS_DIR = "models\\model_v1\\train_logs"
 
 NUM_WORKERS = 4
 PIN_MEMORY = True
@@ -173,6 +174,12 @@ if __name__ == "__main__":
         save_model(save_path=MODEL_SAVE_PATH, loss=train_loss, 
                    epoch=(epoch + last_epoch), model=model, optimizer=optimizer)
 
+        save_metrics(save_dir=TRAIN_LOGS_DIR, name='train', epoch=epoch, 
+                     loss=train_loss, accuracy=train_accuracy, dice=train_dice_coeff)
+        
         val_loss, val_accuracy, val_dice_coeff = test(model=model, dataloader=val_loader, 
                                                       loss_function=loss_function, 
                                                       device=DEVICE)
+        
+        save_metrics(save_dir=TRAIN_LOGS_DIR, name='validation', epoch=epoch, 
+                loss=val_loss, accuracy=val_accuracy, dice=val_dice_coeff)

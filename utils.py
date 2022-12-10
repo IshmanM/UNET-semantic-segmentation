@@ -270,7 +270,6 @@ def save_model(save_path: str, epoch: int, loss: float, model: nn.Module, optimi
     torch.save(obj=checkpoint, f=save_path)
 
 
-
 def load_model(load_path: str, model: nn.Module, optimizer: torch.optim.Optimizer = None):
     """
     Load model and optimizer state dicts from inputted path. 
@@ -286,6 +285,7 @@ def load_model(load_path: str, model: nn.Module, optimizer: torch.optim.Optimize
 
     return epoch, loss
 
+
 def save_dict_as_json(save_path: str, data: dict):
     """
     Save a python dict as a .json file.
@@ -293,3 +293,16 @@ def save_dict_as_json(save_path: str, data: dict):
     data = json.dumps(data, indent=4)
     with open(save_path, 'w') as json_file:
         json_file.write(data)
+
+
+def save_metrics(save_dir: str, name: str , epoch: int, **metrics: float):
+    """
+    Save metrics for TensorBoard.
+    """
+    with SummaryWriter(log_dir=save_dir) as writer:
+        
+        for metric, value in metrics.items():
+            tag = f"{metric}/{name}"
+            writer.add_scalar(tag=tag, scalar_value=value, global_step=epoch)
+
+
