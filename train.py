@@ -144,7 +144,7 @@ if __name__ == "__main__":
     scaler = cuda.amp.GradScaler()
 
     for epoch in range(NUM_EPOCHS):
-        print(f"Epoch: {epoch}/{NUM_EPOCHS}")
+        print(f"Epoch: {epoch + 1}/{NUM_EPOCHS}")
 
         train_loss, train_accuracy, train_dice_coeff = train(
             model=model, dataloader=train_loader, 
