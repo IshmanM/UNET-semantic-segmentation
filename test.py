@@ -37,7 +37,8 @@ MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
 MODEL_LOAD_PATH = "models\\model_v1\\model\\model.pth"
 
-PREDICTION_SAVE_DIR = "predictions\\model_v1"
+PREDICTION_MASKS_SAVE_DIR = "predictions\\model_v1\\masks"
+PREDICTION_METRICS_SAVE_PATH = "predictions\\model_v1\\metrics.txt"
 
 NUM_WORKERS = 4
 PIN_MEMORY = True
@@ -91,14 +92,17 @@ if __name__ == "__main__":
         dataloader=test_loader, 
         loss_function=loss_function, 
         device=DEVICE,
-        prediction_save_dir=PREDICTION_SAVE_DIR,
+        prediction_save_dir=PREDICTION_MASKS_SAVE_DIR,
         save_type=MASK_SAVE_TYPE,
         colormap=COLORMAP
     )
     
-    print("test_loss: ", test_loss)
-    print("test_accuracy: ", test_loss)
-    print("test_dice_coeff: ", test_loss)
+    with open(PREDICTION_METRICS_SAVE_PATH, 'w') as metrics_file:
+        metrics_file.writelines('\n'.join([
+            f"test_loss: {test_loss}",
+            f"test_accuracy: {test_accuracy}",
+            f"test_dice_coeff: {test_dice_coeff}"
+        ]))
 
 
     
