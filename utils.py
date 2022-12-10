@@ -306,19 +306,20 @@ def test(
         for x, y, filename in dataloader_loop:
             x, y = x.to(device), y.to(device)
 
-            # Forward step
-            y_logits = model(x)
-            y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
+            with cuda.amp.autocast():
+                # Forward step
+                y_logits = model(x)
+                y_predicted = torch.softmax(y_logits, dim=1).argmax(dim=1)
 
-            # Compute accuracy and loss
-            batch_size = y.shape[0] # Batch length may differ for the final batch
-            data_size += batch_size
+                # Compute accuracy and loss
+                batch_size = y.shape[0] # Batch length may differ for the final batch
+                data_size += batch_size
 
-            loss += loss_function(y_logits, y).item()*batch_size
-            batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])
-            batch_accuracy, batch_dice_coeff = batch_accuracy*batch_size, batch_dice_coeff*batch_size
-            accuracy += batch_accuracy
-            dice_coeff += batch_dice_coeff
+                loss += loss_function(y_logits, y).item()*batch_size
+                batch_accuracy, batch_dice_coeff = metrics(y.argmax(dim=1), y_predicted, num_labels=y.shape[1])
+                batch_accuracy, batch_dice_coeff = batch_accuracy*batch_size, batch_dice_coeff*batch_size
+                accuracy += batch_accuracy
+                dice_coeff += batch_dice_coeff
 
             # Update prograss bar
             dataloader_loop.set_postfix(
