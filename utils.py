@@ -36,7 +36,7 @@ import re
 import numpy as np
 import json
 from PIL import Image
-from patchify import patchify
+from patchify import patchify, unpatchify
 from tqdm.auto import tqdm
 import torch
 from torch import nn, cuda
@@ -48,8 +48,10 @@ from datasets import semanticDroneDataset
 
 # Image data handling utils
 
-def patchify_images(images_dir: str, patches_dir: str, save_type: str, 
-                    patch_size: tuple, step: int, rgb: bool = True):
+def patchify_images(
+    images_dir: str, patches_dir: str, save_type: str, 
+    patch_size: tuple, step: int, rgb: bool = True
+):
     """
     Save patches of large images in desired directory. 
     Compatible with both RGB and single-channel (typically greyscale) images.
@@ -68,21 +70,83 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str,
 
         patches = patchify(image=image, patch_size=patch_size, step=step)
 
-        for x in range(patches.shape[0]):
-            for y in range(patches.shape[1]):
+        for y in range(patches.shape[0]):
+            for x in range(patches.shape[1]):
                 
                 if rgb:
-                    patch = patches[x, y, 0, ...]
+                    patch = patches[y, x, 0, ...]
                 else:
-                    patch = patches[x, y, ...]
+                    patch = patches[y, x, ...]
 
                 patch = Image.fromarray(patch)
 
-                patch_subpath = re.sub('\.[0-9A-Za-z]*', '', image_subpath) + '_' + str(x) + str(y) + '.' + save_type
+                patch_subpath = re.sub(
+                    '\.[0-9A-Za-z]*', 
+                    '', image_subpath
+                ) + '_' + str(y) + '_' + str(x) + '.' + save_type
+                
                 patch_path = os.path.join(patches_dir, patch_subpath)
                 patch.save(patch_path)
-            
-            
+
+
+def unpatchify_images(
+    patches_dir: str, images_dir: str, image_size: tuple, 
+    save_type: str, rgb: bool = True
+):
+    """
+    """
+    if rgb:
+        convert_value = "RGB"
+    else:
+        convert_value = "L" # For single-channel images
+    
+    all_patch_subpaths = os.listdir(patches_dir)
+    
+    image_names = set([re.sub(
+        '_[0-9]+_[0-9]+\.[0-9A-Za-z]*',
+        '', patch_subpath
+    ) for patch_subpath in all_patch_subpaths])
+
+    for image_name in tqdm(image_names):
+        
+        image_patch_subpaths = list(filter(
+            re.compile(f'^{image_name}').match, 
+            all_patch_subpaths
+        ))
+
+        patch_y_idxs = set(
+            [re.sub(
+                (f'{image_name}_' + '|_[0-9]+\.[0-9A-Za-z]*'), 
+                '', patch_subpath
+            ) for patch_subpath in image_patch_subpaths]
+        )
+
+        patch_x_idxs = set(
+            [re.sub(
+                (f'{image_name}_[0-9]+_' + '|\.[0-9A-Za-z]*'), 
+                '', patch_subpath
+            ) for patch_subpath in image_patch_subpaths]
+        )
+
+        for y in patch_y_idxs:
+            for x in patch_x_idxs:
+                
+                patch_path = list(filter(
+                    re.compile(f'{image_name}_{y}_{x}').match,
+                    image_patch_subpaths
+                ))[0]
+
+                patch = np.array(Image.open(patch_path).convert(convert_value), dtype=np.uint8)
+                
+
+                # !! load patches as numpy, put into 2D numpy array
+
+
+        break
+
+
+
+
 def semanticDroneDataset_dataloader(
     images_dir: str, masks_dir: str, image_save_type: str, mask_save_type: str,
     colormap: list, shuffle: bool = False, transforms: list[TFM.transform_multiple] = None,
