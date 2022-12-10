@@ -86,16 +86,14 @@ def patchify_images(
                 ) + '_' + str(y) + '_' + str(x) + '.' + save_type
                 
                 patch_path = os.path.join(patches_dir, patch_subpath)
-                patch.save(patch_path)
+                patch.save(fp=patch_path)
 
 
-def unpatchify_images(
-    patches_dir: str, images_dir: str, image_size: tuple, 
-    save_type: str, rgb: bool = True
-):
+def unpatchify_images(patches_dir: str, images_dir: str, save_type: str, rgb: bool = True):
     """
+    Identify associated patches in desired directory, then unpatchify them and save the resulting images.
+    Compatible with both RGB and single-channel (typically greyscale) images.
     """
-    
     all_patch_subpaths = os.listdir(patches_dir)
 
     image_names = set([re.sub(
@@ -105,30 +103,29 @@ def unpatchify_images(
 
     for image_name in tqdm(image_names):
         
+        # Identify associated patches, and retrieve number of patches in y and x dimensions
         image_patch_subpaths = list(filter(
             re.compile(f'^{image_name}').match, 
             all_patch_subpaths
         ))
-
         patch_y_idxs = set(
-            [re.sub(
+            [int(re.sub(
                 (f'{image_name}_' + '|_[0-9]+\.[0-9A-Za-z]*'), 
                 '', patch_subpath
-            ) for patch_subpath in image_patch_subpaths]
+            )) for patch_subpath in image_patch_subpaths]
         )
-
         patch_x_idxs = set(
-            [re.sub(
+            [int(re.sub(
                 (f'{image_name}_[0-9]+_' + '|\.[0-9A-Za-z]*'), 
                 '', patch_subpath
-            ) for patch_subpath in image_patch_subpaths]
+            )) for patch_subpath in image_patch_subpaths]
         )
 
+        # Arrange associated patches in numpy ndarray of appropriate shape to unpatchify
         patches = []
-        for y in patch_y_idxs:
-
+        for y in sorted(patch_y_idxs):
             patches_x_layer = []
-            for x in patch_x_idxs:
+            for x in sorted(patch_x_idxs):
                 patch_subpath = list(filter(
                     re.compile(f'{image_name}_{y}_{x}').match,
                     image_patch_subpaths
@@ -138,26 +135,22 @@ def unpatchify_images(
                     patch = np.array(Image.open(patch_path).convert("RGB"), dtype=np.uint8)
                     patch = np.expand_dims(patch, axis=0)
                 else:
-                   patch = np.array(Image.open(patch_path).convert("L"), dtype=np.uint8) 
+                    patch = np.array(Image.open(patch_path).convert("L"), dtype=np.uint8) 
                 patches_x_layer.append(patch)
             patches_x_layer = np.stack(patches_x_layer, axis=0)
-
             patches.append(patches_x_layer)
         patches = np.stack(patches, axis=0)
 
-        image_shape = (patches.shape[0]*patches.shape[2], patches.shape[1]*patches.shape[3])
         if rgb: 
+            image_shape = (patches.shape[0]*patches.shape[3], patches.shape[1]*patches.shape[4])
             image_shape += (3,)
+        else:
+            image_shape = (patches.shape[0]*patches.shape[2], patches.shape[1]*patches.shape[3])
 
         image = unpatchify(patches=patches, imsize=image_shape)
-
-
-       
-
-
-        break
-
-
+        image = Image.fromarray(image)
+        image_path = os.path.join(images_dir, f'{image_name}.{save_type}')
+        image.save(fp=image_path)
 
 
 def semanticDroneDataset_dataloader(
