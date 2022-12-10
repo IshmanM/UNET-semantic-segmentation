@@ -83,30 +83,38 @@ def patchify_images(images_dir: str, patches_dir: str, save_type: str,
                 patch.save(patch_path)
             
             
-def semanticDroneDataset_dataloader(images_dir: str, masks_dir: str, image_save_type: str, mask_save_type: str,
-                                    colormap: list, shuffle: bool = False, transforms: list[TFM.transform_multiple] = None,
-                                    batch_size: int = 1, num_workers = 4, pin_memory = True):
+def semanticDroneDataset_dataloader(
+    images_dir: str, masks_dir: str, image_save_type: str, mask_save_type: str,
+    colormap: list, shuffle: bool = False, transforms: list[TFM.transform_multiple] = None,
+    batch_size: int = 1, num_workers = 4, pin_memory = True
+):
     """
     Generate train, validation, and test DataLoaders of desired split sizes. 
     """
-    ds = semanticDroneDataset(image_dir=images_dir, 
-                              mask_dir=masks_dir, 
-                              image_save_type=image_save_type, 
-                              mask_save_type=mask_save_type, 
-                              colormap=colormap, 
-                              transforms=transforms)
+    ds = semanticDroneDataset(
+        image_dir=images_dir, 
+        mask_dir=masks_dir, 
+        image_save_type=image_save_type, 
+        mask_save_type=mask_save_type, 
+        colormap=colormap, 
+        transforms=transforms
+    )
 
-    ds_loader = DataLoader(dataset=ds, 
-                           batch_size=batch_size, 
-                           shuffle=shuffle, 
-                           num_workers=num_workers, 
-                           pin_memory=pin_memory)
+    ds_loader = DataLoader(
+        dataset=ds, 
+        batch_size=batch_size, 
+        shuffle=shuffle, 
+        num_workers=num_workers, 
+        pin_memory=pin_memory
+    )
   
     return ds_loader
 
 
-def save_mask_as_rgb_image(mask: torch.Tensor, colormap: list[int], 
-                                 save_dir: str, filename: str, save_type: str):
+def save_mask_as_rgb_image(
+    mask: torch.Tensor, colormap: list[int], 
+    save_dir: str, filename: str, save_type: str
+):
     """
     Convert multi-channel masks to RGB masks and save result as an image. 
     """
@@ -158,8 +166,10 @@ def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     return (accuracy, dice_coeff)
 
 
-def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
-          optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler, device: torch.device = "cuda"):
+def train(
+    model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, 
+    optimizer: torch.optim.Optimizer, scaler: cuda.amp.GradScaler, device: torch.device = "cuda"
+):
     """
     Enable train mode and train model for 1 epoch.
     Uses autocasting to improve perfomance & maintain accuracy during mixed precision training.
@@ -196,9 +206,11 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
         scaler.step(optimizer)
         scaler.update()
 
-        dataloader_loop.set_postfix(train_loss=(loss/data_size), 
-                                    train_accuracy=(accuracy/data_size),
-                                    train_dice_coeff=(dice_coeff/data_size))
+        dataloader_loop.set_postfix(
+            train_loss=(loss/data_size), 
+            train_accuracy=(accuracy/data_size),
+            train_dice_coeff=(dice_coeff/data_size)
+        )
 
     loss /= data_size
     accuracy /= data_size
@@ -207,8 +219,10 @@ def train(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module,
     return loss, accuracy, dice_coeff
 
 
-def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, device: torch.device = "cuda", 
-         prediction_save_dir: str = None, save_type: str = None, colormap: list[int] = None):
+def test(
+    model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, device: torch.device = "cuda", 
+    prediction_save_dir: str = None, save_type: str = None, colormap: list[int] = None
+):
     """
     Disable train mode and test model. Optionally save predictions to a directory.
     """
@@ -235,19 +249,24 @@ def test(model: nn.Module, dataloader: DataLoader, loss_function: nn.Module, dev
             batch_accuracy, batch_dice_coeff = batch_accuracy*batch_size, batch_dice_coeff*batch_size
             accuracy += batch_accuracy
             dice_coeff += batch_dice_coeff
-        
-            dataloader_loop.set_postfix(test_loss=(loss/data_size), 
-                                        test_accuracy=(accuracy/data_size),
-                                        test_dice_coeff=(dice_coeff/data_size))
+
+            # Update prograss bar
+            dataloader_loop.set_postfix(
+                test_loss=(loss/data_size), 
+                test_accuracy=(accuracy/data_size),
+                test_dice_coeff=(dice_coeff/data_size)
+            )
 
             # Save predictions
             if prediction_save_dir != None:
                 for batch in range(batch_size):
-                    save_mask_as_rgb_image(mask=y_predicted[batch], 
-                                           colormap=colormap, 
-                                           save_dir=prediction_save_dir,
-                                           filename=filename[batch],
-                                           save_type=save_type)
+                    save_mask_as_rgb_image(
+                        mask=y_predicted[batch], 
+                        colormap=colormap, 
+                        save_dir=prediction_save_dir,
+                        filename=filename[batch],
+                        save_type=save_type
+                    )
 
     loss /= data_size
     accuracy /= data_size

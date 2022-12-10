@@ -142,11 +142,12 @@ if __name__ == "__main__":
 
     # Instantiate UNET_model, optimizer, and loss function. Optionally load a saved model
 
-    model = UNET_model(in_channels=MODEL_IN_CHANNELS, 
-                       out_channels=NUM_CLASSES, 
-                       hidden_channels=MODEL_HIDDEN_CHANNELS, 
-                       conv_padding=MODEL_CONV_PADDING
-                       ).to(DEVICE)
+    model = UNET_model(
+        in_channels=MODEL_IN_CHANNELS, 
+        out_channels=NUM_CLASSES, 
+        hidden_channels=MODEL_HIDDEN_CHANNELS, 
+        conv_padding=MODEL_CONV_PADDING
+    ).to(DEVICE)
 
     optimizer = torch.optim.SGD(params=model.parameters(), lr=SGD_LEARNING_RATE, 
                                 momentum=SGD_MOMENTUM, dampening=SGD_DAMPENING)
@@ -158,28 +159,32 @@ if __name__ == "__main__":
     else:
         last_epoch = 0
 
-    # Training
+    # Train model
     
     scaler = cuda.amp.GradScaler()
 
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch: {epoch}/{NUM_EPOCHS}")
 
-        train_loss, train_accuracy, train_dice_coeff = train(model=model, dataloader=train_loader, 
-                                                             loss_function=loss_function, 
-                                                             optimizer=optimizer, 
-                                                             scaler=scaler, 
-                                                             device=DEVICE)
+        train_loss, train_accuracy, train_dice_coeff = train(
+            model=model, dataloader=train_loader, 
+            loss_function=loss_function, 
+            optimizer=optimizer, 
+            scaler=scaler, 
+            device=DEVICE
+        )
 
         save_model(save_path=MODEL_SAVE_PATH, loss=train_loss, 
                    epoch=(epoch + last_epoch), model=model, optimizer=optimizer)
 
         save_metrics(save_dir=TRAIN_LOGS_DIR, name='train', epoch=epoch, 
-                     loss=train_loss, accuracy=train_accuracy, dice=train_dice_coeff)
+                     loss=train_loss, accuracy=train_accuracy, dice_coeff=train_dice_coeff)
         
-        val_loss, val_accuracy, val_dice_coeff = test(model=model, dataloader=val_loader, 
-                                                      loss_function=loss_function, 
-                                                      device=DEVICE)
+        val_loss, val_accuracy, val_dice_coeff = test(
+            model=model, dataloader=val_loader, 
+            loss_function=loss_function, 
+            device=DEVICE
+        )
         
         save_metrics(save_dir=TRAIN_LOGS_DIR, name='validation', epoch=epoch, 
-                loss=val_loss, accuracy=val_accuracy, dice=val_dice_coeff)
+                loss=val_loss, accuracy=val_accuracy, dice_coeff=val_dice_coeff)
