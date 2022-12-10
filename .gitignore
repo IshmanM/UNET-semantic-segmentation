@@ -1,4 +1,5 @@
 data
+predictions
 unused_code
 utils_tests.py
 __pycache__
