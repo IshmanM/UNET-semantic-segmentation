@@ -295,6 +295,7 @@ def test(
 ):
     """
     Disable train mode and test model. Optionally save predictions to a directory.
+    Uses autocasting to improve perfomance & maintain accuracy during mixed precision testing.
     """
     model.eval()
 
