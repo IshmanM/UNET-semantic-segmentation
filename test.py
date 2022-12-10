@@ -16,12 +16,15 @@
 ##############################################
 
 import os
+from dotenv import load_dotenv
 import pandas as pd
 import torch
 from utils import *
 import transform_multiple as TFM
 from model import UNET_model
 
+
+load_dotenv('.env')
 
 # Globals and hyperparameters
 
@@ -42,10 +45,10 @@ PREDICTION_METRICS_SAVE_PATH = "predictions\\model_v1\\metrics.txt"
 
 NUM_WORKERS = 4
 PIN_MEMORY = True
-BATCH_SIZE = 4
-NUM_EPOCHS = 1
+BATCH_SIZE = 16
 MODEL_IN_CHANNELS = 3
-MODEL_HIDDEN_CHANNELS = [16, 32, 64, 128]
+MODEL_HIDDEN_CHANNELS = [8, 16, 32, 64]
+                      # [16, 32, 64, 128]
 MODEL_CONV_PADDING = 1
 
 
