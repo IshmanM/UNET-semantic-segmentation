@@ -31,6 +31,13 @@
 #
 ##############################################
 
+import os
+import re
+import numpy as np
+import json
+from PIL import Image
+from patchify import patchify
+from tqdm.auto import tqdm
 import torch
 from torch import nn, cuda
 from torch.utils.data import DataLoader
@@ -38,13 +45,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.utils import save_image
 import transform_multiple as TFM
 from datasets import semanticDroneDataset
-from patchify import patchify
-import os
-from PIL import Image
-import numpy as np
-import re
-from tqdm.auto import tqdm
-import json
 
 # Image data handling utils
 

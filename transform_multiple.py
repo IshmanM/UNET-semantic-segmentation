@@ -12,15 +12,18 @@
 #
 #
 # @ToDo:
-#   Create classes that allow instantiation of functional transformation objects, which will be passe into 
+#   Create classes that allow instantiation of functional transformation objects, which will be passed into 
 #   semanticDroneDataset as a list
+#   
+#   !! Create additional transformation classes
 #
 ##############################################
 
+from abc import ABC, abstractmethod
 import torch
 import torchvision.transforms.functional as TF
-from abc import ABC, abstractmethod
 import random
+
 
 class transform_multiple(ABC):
     """

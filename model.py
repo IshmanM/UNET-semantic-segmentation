@@ -98,21 +98,39 @@ class UNET_model(nn.Module):
     UNET_model consists of the following stages: Encoding -> Bridge -> Decoding -> End Convlution
     Skip layers link Encoding and Decoding stages
     """
-    def __init__(self, in_channels: int, out_channels: int, hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 1): # out_channels will be number of classes
+    def __init__(
+        self, in_channels: int, out_channels: int, 
+        hidden_channels: list[int] = [64, 128, 256, 512], conv_padding: int = 1
+    ):
         super().__init__()
 
         self.encode_units = nn.ModuleList()
         self.decode_units = nn.ModuleList()
         
         for channels in hidden_channels:
-            self.encode_units.append(module=encode_unit(in_channels=in_channels, out_channels=channels, conv_padding=conv_padding))
+            self.encode_units.append(
+                module=encode_unit(in_channels=in_channels, out_channels=channels, conv_padding=conv_padding)
+            )
             
             # inserted at index 0 as decode unit shapes will occur in reverse order to encode unit shapes when indexing
-            self.decode_units.insert(index=0, module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding))
+            self.decode_units.insert(
+                index=0, 
+                module=decode_unit(in_channels=channels*2, out_channels=channels, conv_padding=conv_padding)
+            )
             in_channels = channels
 
-        self.bridge = conv_unit(in_channels=hidden_channels[-1], out_channels=2*hidden_channels[-1], padding=conv_padding)
-        self.end_conv = nn.Conv2d(in_channels=hidden_channels[0], out_channels=out_channels, kernel_size=1, stride=1, padding=0) # kernel_size=1 => padding=0 
+        self.bridge = conv_unit(
+            in_channels=hidden_channels[-1], 
+            out_channels=2*hidden_channels[-1], 
+            padding=conv_padding
+        )
+        self.end_conv = nn.Conv2d(
+            in_channels=hidden_channels[0], 
+            out_channels=out_channels, 
+            kernel_size=1, 
+            stride=1, 
+            padding=0
+        ) # kernel_size=1 => padding=0 
 
     def forward(self, x: torch.Tensor):
         

@@ -34,14 +34,17 @@ import torch
 from torch.utils.data import Dataset
 import transform_multiple as TFM
 
+
 class semanticDroneDataset(Dataset):
     """
     Dataset class to access images and masks from the Semantic Drone Dataset. 
     RGB masks are converted to multi-channel masks for multi-class semantic segmentation.
     Inputted transformations are applied to the images and converted masks.
     """
-    def __init__(self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, 
-                 colormap: list[int], transforms: list[TFM.transform_multiple] = None):
+    def __init__(
+        self, image_dir: str, mask_dir: str, image_save_type: str, mask_save_type: str, 
+        colormap: list[int], transforms: list[TFM.transform_multiple] = None
+    ):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.mask_save_type = mask_save_type

@@ -18,8 +18,8 @@
 import os
 import pandas as pd
 import torch
-import transform_multiple as TFM
 from utils import *
+import transform_multiple as TFM
 from model import UNET_model
 
 
@@ -98,6 +98,7 @@ if __name__ == "__main__":
     )
     
     with open(PREDICTION_METRICS_SAVE_PATH, 'w') as metrics_file:
+        
         metrics_file.writelines('\n'.join([
             f"test_loss: {test_loss}",
             f"test_accuracy: {test_accuracy}",

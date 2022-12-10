@@ -23,34 +23,16 @@
 #   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
 
-
-import matplotlib
-from matplotlib import pyplot as plt
-import numpy as np
 import os
+from dotenv import load_dotenv
 import pandas as pd
-import transform_multiple as TFM
-
-from model import UNET_model
-
-import shutil
-import sklearn
-from sklearn.model_selection import train_test_split
-
 import torch
 from torch import nn, cuda
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
-import torchvision
-from torchvision import datasets
-from torchvision import transforms
-
-from timeit import default_timer as timer 
-from tqdm.auto import tqdm
-
 from utils import *
-from dotenv import load_dotenv
+import transform_multiple as TFM
+from model import UNET_model
 
 
 load_dotenv('.env')
