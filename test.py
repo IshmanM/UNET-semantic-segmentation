@@ -62,7 +62,7 @@ if __name__ == "__main__":
     COLORMAP = COLORMAP_DF.loc[:,[" r"," g"," b"]].values.tolist()
     NUM_CLASSES = COLORMAP_DF.shape[0]
     
-    test_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+    test_transforms = [TFM.center_crop(output_size=(PATCH_HEIGHT, PATCH_WIDTH)),
                        TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
     test_loader = semanticDroneDataset_dataloader(

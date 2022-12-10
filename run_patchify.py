@@ -26,7 +26,7 @@ load_dotenv('.env')
 
 PATCH_WIDTH = int(os.environ["PATCH_WIDTH"])
 PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
-PATCH_SIZE = (PATCH_WIDTH, PATCH_HEIGHT)
+PATCH_SIZE = (PATCH_HEIGHT, PATCH_WIDTH)
 
 STEP = 500
 

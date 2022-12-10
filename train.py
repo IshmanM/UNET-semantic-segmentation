@@ -15,10 +15,8 @@
 #   update requirements.txt & import cleanup
 #   add more transformations
 #
-#   !! Convert labels to images and save in test(), and cat using unpatchify
-#   !! Save model checkpoints
-#   !! Save metrics
-#
+#   !! Complete run_unpatchify
+#   !! Test latest utils
 #
 #   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
@@ -84,10 +82,10 @@ if __name__ == "__main__":
     CLASSES = COLORMAP_DF.loc[:,"name"].values.tolist()
     NUM_CLASSES = COLORMAP_DF.shape[0]
     
-    train_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+    train_transforms = [TFM.center_crop(output_size=(PATCH_HEIGHT, PATCH_WIDTH)),
                         TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
-    val_transforms = [TFM.center_crop(output_size=(PATCH_WIDTH, PATCH_HEIGHT)),
+    val_transforms = [TFM.center_crop(output_size=(PATCH_HEIGHT, PATCH_WIDTH)),
                       TFM.normalize(mean=[0.0], std=[255.0], inplace=False)]
 
     train_loader = semanticDroneDataset_dataloader(
