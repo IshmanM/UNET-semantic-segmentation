@@ -95,13 +95,9 @@ def unpatchify_images(
 ):
     """
     """
-    if rgb:
-        convert_value = "RGB"
-    else:
-        convert_value = "L" # For single-channel images
     
     all_patch_subpaths = os.listdir(patches_dir)
-    
+
     image_names = set([re.sub(
         '_[0-9]+_[0-9]+\.[0-9A-Za-z]*',
         '', patch_subpath
@@ -128,18 +124,35 @@ def unpatchify_images(
             ) for patch_subpath in image_patch_subpaths]
         )
 
+        patches = []
         for y in patch_y_idxs:
+
+            patches_x_layer = []
             for x in patch_x_idxs:
-                
-                patch_path = list(filter(
+                patch_subpath = list(filter(
                     re.compile(f'{image_name}_{y}_{x}').match,
                     image_patch_subpaths
                 ))[0]
+                patch_path = os.path.join(patches_dir, patch_subpath)
+                if rgb:
+                    patch = np.array(Image.open(patch_path).convert("RGB"), dtype=np.uint8)
+                    patch = np.expand_dims(patch, axis=0)
+                else:
+                   patch = np.array(Image.open(patch_path).convert("L"), dtype=np.uint8) 
+                patches_x_layer.append(patch)
+            patches_x_layer = np.stack(patches_x_layer, axis=0)
 
-                patch = np.array(Image.open(patch_path).convert(convert_value), dtype=np.uint8)
-                
+            patches.append(patches_x_layer)
+        patches = np.stack(patches, axis=0)
 
-                # !! load patches as numpy, put into 2D numpy array
+        image_shape = (patches.shape[0]*patches.shape[2], patches.shape[1]*patches.shape[3])
+        if rgb: 
+            image_shape += (3,)
+
+        image = unpatchify(patches=patches, imsize=image_shape)
+
+
+       
 
 
         break
