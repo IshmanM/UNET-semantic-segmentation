@@ -1,0 +1,19 @@
+{
+    "PATCH_WIDTH": 500,
+    "PATCH_HEIGHT": 500,
+    "NUM_WORKERS": 8,
+    "PIN_MEMORY": true,
+    "BATCH_SIZE": 8,
+    "NUM_EPOCHS": 5,
+    "MODEL_IN_CHANNELS": 3,
+    "MODEL_HIDDEN_CHANNELS": [
+        8,
+        16,
+        32,
+        64
+    ],
+    "MODEL_CONV_PADDING": 1,
+    "SGD_LEARNING_RATE": 0.01,
+    "SGD_MOMENTUM": 0.9,
+    "SGD_DAMPENING": 0.0
+}

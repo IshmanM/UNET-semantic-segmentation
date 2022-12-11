@@ -54,12 +54,13 @@ MODEL_SAVE_PATH = "models\\model_v1\\model\\model.pth"
 HYPERPARAMETER_SAVE_PATH = "models\\model_v1\\model.json"
 TRAIN_LOGS_DIR = "models\\model_v1\\train_logs"
 
-NUM_WORKERS = 4
+NUM_WORKERS = 8
 PIN_MEMORY = True
-BATCH_SIZE = 4
-NUM_EPOCHS = 1
+BATCH_SIZE = 8
+NUM_EPOCHS = 5
 MODEL_IN_CHANNELS = 3
-MODEL_HIDDEN_CHANNELS = [16, 32, 64, 128]
+MODEL_HIDDEN_CHANNELS = [8, 16, 32, 64]
+                      # [16, 32, 64, 128]
                       # [64, 128, 256, 512]
 MODEL_CONV_PADDING = 1
 SGD_LEARNING_RATE = 0.01
