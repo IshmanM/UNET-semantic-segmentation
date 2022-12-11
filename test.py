@@ -43,9 +43,9 @@ MODEL_LOAD_PATH = "models\\model_v1\\model\\model.pth"
 PREDICTION_MASKS_SAVE_DIR = "predictions\\model_v1\\masks"
 PREDICTION_METRICS_SAVE_PATH = "predictions\\model_v1\\metrics.txt"
 
-NUM_WORKERS = 4
+NUM_WORKERS = 8
 PIN_MEMORY = True
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 MODEL_IN_CHANNELS = 3
 MODEL_HIDDEN_CHANNELS = [8, 16, 32, 64]
                       # [16, 32, 64, 128]

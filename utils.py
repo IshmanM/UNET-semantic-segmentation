@@ -187,11 +187,11 @@ def save_mask_as_rgb_image(
 ):
     """
     Convert multi-channel masks to RGB masks and save result as an image. 
+    Masks should be argmaxed along the channel/label dimension prior to input. 
     """
     save_path = os.path.join(save_dir, (filename + '.' + save_type))
 
     num_labels = len(colormap)
-    mask = mask.argmax(dim=0)
     rgb_mask = torch.zeros(size=((3,) + mask.shape)).to(device)
 
     for label in range(num_labels):
@@ -216,7 +216,8 @@ def dice_coefficient(y: torch.tensor, y_predicted: torch.Tensor):
 
 def metrics(y: torch.Tensor, y_predicted: torch.Tensor, num_labels: int):
     """
-    Compute basic accuracy and multiclass dice coefficient
+    Compute basic accuracy and multiclass dice coefficient.
+    Tensors should be argmaxed along the channel/label dimension prior to input. 
     """
     # Cropping may be necessary if no padding is used in model training
     if y.shape != y_predicted.shape:
