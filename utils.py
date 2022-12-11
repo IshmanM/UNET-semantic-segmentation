@@ -182,17 +182,17 @@ def semanticDroneDataset_dataloader(
 
 
 def save_mask_as_rgb_image(
-    mask: torch.Tensor, colormap: list[int], 
-    save_dir: str, filename: str, save_type: str
+    mask: torch.Tensor, colormap: list[int], save_dir: str, 
+    filename: str, save_type: str, device: torch.device = "cuda"
 ):
     """
     Convert multi-channel masks to RGB masks and save result as an image. 
     """
     save_path = os.path.join(save_dir, (filename + '.' + save_type))
 
-    num_labels = mask.shape[0]
+    num_labels = len(colormap)
     mask = mask.argmax(dim=0)
-    rgb_mask = torch.zeros(size=((3,) + mask.shape))
+    rgb_mask = torch.zeros(size=((3,) + mask.shape)).to(device)
 
     for label in range(num_labels):
         label_map = (mask == label).float()
@@ -331,13 +331,15 @@ def test(
 
             # Save predictions
             if prediction_save_dir != None:
+
                 for batch in range(batch_size):
                     save_mask_as_rgb_image(
                         mask=y_predicted[batch], 
                         colormap=colormap, 
                         save_dir=prediction_save_dir,
                         filename=filename[batch],
-                        save_type=save_type
+                        save_type=save_type,
+                        device=device
                     )
 
     loss /= data_size
