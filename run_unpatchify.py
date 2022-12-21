@@ -12,6 +12,7 @@
 #
 # @ToDo:
 #   Consider dynamic unpatchifying
+#   Consider techniques to decrease grid-line residue
 #
 ##############################################
 

@@ -2,7 +2,7 @@
 # @date: 09/12/2022
 # 
 # @description:
-#   
+#   Test an instance of UNET_model
 #
 # @resources:
 # 

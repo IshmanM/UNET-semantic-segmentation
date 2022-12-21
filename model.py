@@ -14,10 +14,8 @@
 # @ToDo:
 #   When preprocessing data, consider:
 #       a) Overlap tile padding strategy to prevent pixels from being cut out in outut, vs. 
-#       b) Basic padding  
+#       b) Transformation based padding
 #
-#   !! centerCrop may possibly pose an issue due to misallignment of y predicted when computing accuracy, 
-#       so consider basic padding / img transformation based padding instead of cropping
 ##############################################
 
 import torch

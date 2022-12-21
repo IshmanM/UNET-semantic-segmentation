@@ -2,7 +2,7 @@
 # @date: 01/12/2022
 # 
 # @description:
-#   
+#   Train an instance of UNET_model
 #
 # @resources:
 #   Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. 
@@ -12,13 +12,8 @@
 #
 #
 # @ToDo:
-#   update requirements.txt & import cleanup
-#   add more transformations
+#   Consider adding more transformations
 #
-#   !! Complete run_unpatchify
-#   !! Test latest utils
-#
-#   Save memory usage, e.g. run patchify for smaller batches, etc...
 ##############################################
 
 import os

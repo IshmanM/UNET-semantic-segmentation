@@ -17,15 +17,7 @@
 # @ToDo:
 #   When preprocessing data, consider:
 #       a) Overlap tile padding strategy to prevent pixels from being cut out in outut, vs. 
-#       b) Basic padding  
-#   Use batch size of 1, as per the paper, and momentum of 0.99 in optimizer
-#
-#   !! centerCrop may possibly pose an issue due to misallignment of y predicted when  computing accuracy, 
-#       so consider basic padding / img transformation based padding instead of cropping
-#       !! However, what if data labels are of smaller size than padded predictions?
-#
-#   !! Need to handle images in small patches, such as w/patchify. 
-#          Best to create a func to do it once and save it in a dir
+#       b) Transformation based padding
 #
 #   Consider dynamic patchifying
 #

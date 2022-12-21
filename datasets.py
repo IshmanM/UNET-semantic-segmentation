@@ -3,7 +3,7 @@
 # @date: 03/12/2022
 # 
 # @description:
-#   Dataset class for Semantic Drone Dataset
+#   Dataset class for Semantic Drone Dataset, compatible with PyTorch DataLoader.
 #
 # @resources:
 #   Institute of Computer Graphics and Vision. (2019). Semantic Drone Dataset. 
@@ -13,16 +13,7 @@
 #
 #
 # @ToDo:
-#   Add image transformations
-#   Need to convert RGB masks into multichannel input with num_classes channels. Pixel of a class's channel = 1 if pixel is of that class.
-#
-#   Save the mask data restructuring in a dir
-#   
-#   !! Need to handle images in small patches, such as w/patchify, maybe handle in utils and save imgs there
-#
 #   Consider dynamic patchifying
-#
-#   # !! roll axis causing transformation errs, need to fix. Consider alt to albemutations.
 #
 ##############################################
 

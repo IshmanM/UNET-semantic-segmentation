@@ -12,10 +12,7 @@
 #
 #
 # @ToDo:
-#   Create classes that allow instantiation of functional transformation objects, which will be passed into 
-#   semanticDroneDataset as a list
-#   
-#   !! Create additional transformation classes
+#   Consider creating additional transformation classes
 #
 ##############################################
 
