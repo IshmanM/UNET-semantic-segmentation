@@ -50,17 +50,16 @@ IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
 MODEL_LOAD_PATH = None
-MODEL_SAVE_PATH = "models\\model_v1\\model\\model.pth"
-HYPERPARAMETER_SAVE_PATH = "models\\model_v1\\model.json"
-TRAIN_LOGS_DIR = "models\\model_v1\\train_logs"
+MODEL_SAVE_PATH = "models\\model_v2\\model\\model.pth"
+HYPERPARAMETER_SAVE_PATH = "models\\model_v2\\model.json"
+TRAIN_LOGS_DIR = "models\\model_v2\\train_logs"
 
 NUM_WORKERS = 8
 PIN_MEMORY = True
-BATCH_SIZE = 8
-NUM_EPOCHS = 5
+BATCH_SIZE = 4
+NUM_EPOCHS = 10
 MODEL_IN_CHANNELS = 3
-MODEL_HIDDEN_CHANNELS = [8, 16, 32, 64]
-                      # [16, 32, 64, 128]
+MODEL_HIDDEN_CHANNELS = [16, 32, 64, 128]
                       # [64, 128, 256, 512]
 MODEL_CONV_PADDING = 1
 SGD_LEARNING_RATE = 0.01

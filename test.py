@@ -38,17 +38,16 @@ PATCH_HEIGHT = int(os.environ["PATCH_HEIGHT"])
 IMAGE_SAVE_TYPE = os.environ["IMAGE_SAVE_TYPE"]
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
 
-MODEL_LOAD_PATH = "models\\model_v1\\model\\model.pth"
+MODEL_LOAD_PATH = "models\\model_v2\\model\\model.pth"
 
-PREDICTION_MASKS_SAVE_DIR = "predictions\\model_v1\\masks"
-PREDICTION_METRICS_SAVE_PATH = "predictions\\model_v1\\metrics.txt"
+PREDICTION_MASKS_SAVE_DIR = "predictions\\model_v2\\masks"
+PREDICTION_METRICS_SAVE_PATH = "predictions\\model_v2\\metrics.txt"
 
 NUM_WORKERS = 8
 PIN_MEMORY = True
-BATCH_SIZE = 8
+BATCH_SIZE = 4
 MODEL_IN_CHANNELS = 3
-MODEL_HIDDEN_CHANNELS = [8, 16, 32, 64]
-                      # [16, 32, 64, 128]
+MODEL_HIDDEN_CHANNELS = [16, 32, 64, 128]
 MODEL_CONV_PADDING = 1
 
 

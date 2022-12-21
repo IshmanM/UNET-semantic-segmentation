@@ -25,8 +25,8 @@ load_dotenv('.env')
 # Globals
 
 MASK_SAVE_TYPE = os.environ["MASK_SAVE_TYPE"]
-PATCHES_DIR = "predictions\\model_v1\\masks"
-IMAGES_DIR = "predictions\\model_v1\\unpatchified_masks"
+PATCHES_DIR = "predictions\\model_v2\\masks"
+IMAGES_DIR = "predictions\\model_v2\\unpatchified_masks"
 
 
 if __name__ == "__main__":
