@@ -1,4 +1,4 @@
-# Semantic Segmentation
+# U-Net Semantic Segmentation
 
 ## Description
 
