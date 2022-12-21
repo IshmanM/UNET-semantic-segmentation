@@ -6,7 +6,7 @@ This program is designed to perform semantic segmentation on images with multipl
 
 A U-Net model was designed with reference to the original 2015 paper by Olaf, R. et. al. To downscale and add complexity to input image tensors, an encoding stage with CNN layers is used. This helps identify features and what classes they belong to, but loses information on pixel location. The downscaled image tensors are then upscaled in a decoding stage, in which skip connections are made to corresponding CNN layers of the encoding stage. This provides spatial information with respect to the pixel locations of classes in the image.
 
-![Alt text](README_assets\UNET_structure.png)
+![Alt text](README_assets/UNET_structure.png)
 Figure 1. U-Net Structure. (Olaf, R. et. al., 2015)
 
 The Semantic Drone Dataset by the Graz University of Technology's Institute of Computer Graphics and Vision was used to train and test the U-Net model. To compensate for a limited GPU (Nvidia GeForce GTX 1050 ti), images of size 4000 x 6000 pixels were patched to significantly smaller sizes before training or testing. After saving test results, patches of the same image were combined to re-create a full 4000 x 6000 pixel image.
@@ -19,24 +19,24 @@ Semantic segmentation of images has a variety of existing/potential applications
 
 ## Results
 
-![Alt text](README_assets\model_v1_accuracy.png)
+![Alt text](README_assets/model_v1_accuracy.png)
 Figure 2. model_v1 Accuracy
 
-![Alt text](README_assets\model_v1_dice_coeff.png)
+![Alt text](README_assets/model_v1_dice_coeff.png)
 Figure 3. model_v1 Dice Coefficient
 
-![Alt text](README_assets\model_v1_loss.png)
+![Alt text](README_assets/model_v1_loss.png)
 Figure 4. model_v1 Loss
 
-![Alt text](README_assets\476.jpg)
+![Alt text](README_assets/476.jpg)
 Figure 5. Original Image #476 (Institute of Computer Graphics and Vision, 2019)
 
-![Alt text](README_assets\model_v1_476.png)
+![Alt text](README_assets/model_v1_476.png)
 Figure 6. Semantic Segmentation of Image #476 by model_v1
 
 ## Key Learnings
 
-computationally expensive
+Training a semantic segmantation model for large images is computationally expensive. Training using a reasonable GPU and allocation of RAM requires the patchification of large images to a smaller size. In the case of model_v1, this was 400 x 400 pixels.
 
 but patchifying loses image location data
 
