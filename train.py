@@ -21,8 +21,6 @@ from dotenv import load_dotenv
 import pandas as pd
 import torch
 from torch import nn, cuda
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 from utils import *
 import transform_multiple as TFM
 from model import UNET_model
