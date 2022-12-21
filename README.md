@@ -7,6 +7,7 @@ This program is designed to perform semantic segmentation on images with multipl
 A U-Net model was designed with reference to the original 2015 paper by Olaf, R. et. al. To downscale and add complexity to input image tensors, an encoding stage with CNN layers is used. This helps identify features and what classes they belong to, but loses information on pixel location. The downscaled image tensors are then upscaled in a decoding stage, in which skip connections are made to corresponding CNN layers of the encoding stage. This provides spatial information with respect to the pixel locations of classes in the image.
 
 <image src="README_assets/UNET_structure.png" width="500">
+
 Figure 1. U-Net Structure. (Olaf, R. et. al., 2015)
 
 The Semantic Drone Dataset by the Graz University of Technology's Institute of Computer Graphics and Vision was used to train and test the U-Net model. To compensate for a limited GPU (Nvidia GeForce GTX 1050 ti), images of size 4000 x 6000 pixels were patched to significantly smaller sizes before training or testing. After saving test results, patches of the same image were combined to re-create a full 4000 x 6000 pixel image.
@@ -20,18 +21,23 @@ Semantic segmentation of images has a variety of existing/potential applications
 ## Results
 
 <image src="README_assets/model_v1_accuracy.png" width="500">
+
 Figure 2. model_v1 Accuracy
 
 <image src="README_assets/model_v1_dice_coeff.png" width="500">
+
 Figure 3. model_v1 Dice Coefficient
 
 <image src="README_assets/model_v1_loss.png" width="500">
+
 Figure 4. model_v1 Loss
 
 <image src="README_assets/476.jpg" width="500">
+
 Figure 5. Original Image #476 (Institute of Computer Graphics and Vision, 2019)
 
 <image src="README_assets/model_v1_476.png" width="500">
+
 Figure 6. Semantic Segmentation of Image #476 by model_v1
 
 ## Key Learnings
