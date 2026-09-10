@@ -2,56 +2,91 @@
 
 ## Description
 
-This program is designed to perform semantic segmentation on images with multiple classes. 
+This project implements a U-Net model for multi-class semantic segmentation.
 
-A U-Net model was designed with reference to the original 2015 paper by Olaf, R. et. al. To downscale and add complexity to input image tensors, an encoding stage with CNN layers is used. This helps identify features and what classes they belong to, but loses information on pixel location. The downscaled image tensors are then upscaled in a decoding stage, in which skip connections are made to corresponding CNN layers of the encoding stage. This provides spatial information with respect to the pixel locations of classes in the image.
+The model was designed with reference to the original U-Net architecture by
+Ronneberger, Fischer, and Brox. The network uses an encoding path to build
+higher-level feature representations and a decoding path to recover spatial
+resolution, with skip connections linking corresponding stages.
 
-<image src="README_assets/UNET_structure.png" width="500">
+```mermaid
+flowchart LR
+    I[Input image] --> E1[Encoder block]
+    E1 --> D1[Downsample]
+    D1 --> E2[Encoder block]
+    E2 --> D2[Downsample]
+    D2 --> B[Bottleneck]
+    B --> U2[Upsample + decoder block]
+    E2 -. skip connection .-> U2
+    U2 --> U1[Upsample + decoder block]
+    E1 -. skip connection .-> U1
+    U1 --> O[Per-pixel class output]
+```
 
-Figure 1. U-Net Structure. (Olaf, R. et. al., 2015)
-
-The Semantic Drone Dataset by the Graz University of Technology's Institute of Computer Graphics and Vision was used to train and test the U-Net model. To compensate for a limited GPU (Nvidia GeForce GTX 1050 ti), images of size 4000 x 6000 pixels were patched to significantly smaller sizes before training or testing. After saving test results, patches of the same image were combined to re-create a full 4000 x 6000 pixel image.
-
-## Application
-
-Semantic segmentation of images has a variety of existing/potential applications accross industries:
-- Biomedical samples may be better analysed for the presence of various tissues and diseases.
-- Autonomous vehicles may rely on live image segmentaion to identify pixels belonging to pedestrians, vehicles, and other objects. In combination with LiDAR, 3D space may be accurately classified to allow for safe transportation.
+The Semantic Drone Dataset from Graz University of Technology's Institute of
+Computer Graphics and Vision was used to train and evaluate the model. To work
+within the available GPU memory, the original high-resolution images were
+divided into smaller patches before training and testing. Prediction patches
+could then be recombined into full-resolution segmentation maps.
 
 ## Results
 
-<image src="README_assets/model_v1_accuracy.png" width="500">
+<img src="README_assets/model_v1_accuracy.png" width="500">
 
-Figure 2. model_v1 Accuracy
+Figure 1. model_v1 accuracy
 
-<image src="README_assets/model_v1_dice_coeff.png" width="500">
+<img src="README_assets/model_v1_dice_coeff.png" width="500">
 
-Figure 3. model_v1 Dice Coefficient
+Figure 2. model_v1 Dice coefficient
 
-<image src="README_assets/model_v1_loss.png" width="500">
+<img src="README_assets/model_v1_loss.png" width="500">
 
-Figure 4. model_v1 Loss
+Figure 3. model_v1 loss
 
-<image src="README_assets/476.jpg" width="500">
+<img src="README_assets/model_v1_476.png" width="500">
 
-Figure 5. Original Image #476 (Institute of Computer Graphics and Vision, 2019)
-
-<image src="README_assets/model_v1_476.png" width="500">
-
-Figure 6. Semantic Segmentation of Image #476 by model_v1
+Figure 4. Semantic segmentation prediction for Semantic Drone Dataset image
+#476. This is a dataset-derived result and is subject to the dataset terms
+described below.
 
 ## Key Learnings
 
-Training a semantic segmantation model for large images is computationally expensive. Training using a reasonable GPU and allocation of RAM requires the patchification of large images to a smaller size. In the case of model_v1, this was 500 x 500 pixels.
+Training a semantic segmentation model on large images can be computationally
+expensive. In this project, patchification allowed large images to be processed
+within the available GPU memory.
 
-As a consequence of patchification, however, pixels along the edges of patches lost the context of surrounding pixels. As a result, the accuracy of predictions for these pixels was lower than the rest of their respective patches and gridlines were seen where the patches were combined to form full 4000 x 6000 images, such as in Figure 6. 
+A tradeoff was visible at patch boundaries. Pixels near patch edges had less
+surrounding context, which produced lower-quality predictions and visible
+gridline artifacts when the patches were recombined.
 
-To counteract this, a possible tecnique is to use patches of slighty larger size. The aditional pixels along patch edges may act as padding, as opposed to the blank pixels currently used for padding in the U-Net model's CNN layers. Modifications to patch size should be automatically determined based on the amount of padding required (the number of convolutional layers). 
+Possible improvements include overlap-tile processing, padding strategies, and
+automatically selecting patch dimensions based on the network geometry.
 
-Another padding technique may involve applying resize transformations to existing patches.
+## Dataset and Artifact Licensing
+
+The Semantic Drone Dataset is not distributed as part of this project. It is
+provided by Graz University of Technology for non-commercial use under its own
+terms and requires attribution.
+
+Source code authored for this repository is licensed under the MIT License,
+except where otherwise noted.
+
+Trained model checkpoints and dataset-derived outputs or evaluation artifacts
+are not covered by the MIT License to the extent that the Semantic Drone
+Dataset terms apply to them. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+for details.
 
 ## Resources
 
-- Institute of Computer Graphics and Vision. (2019). Semantic Drone Dataset. Graz University of Technology. Retrieved from http://dronedataset.icg.tugraz.at
-- Olaf, R. et. al. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. University of Freiburg. Retrieved from https://arxiv.org/pdf/1505.04597.pdf
-- Ekin, T. (2019). Metrics to Evaluate your Semantic Segmentation Model. Towards Data Science. Retrieved from https://towardsdatascience.com/metrics-to-evaluate-your-semantic-segmentation-model-6bcb99639aa2
+- [Semantic Drone Dataset](https://ivc.tugraz.at/research-project/semantic-drone-dataset/), Institute of Computer Graphics and Vision, Graz University of Technology
+- [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597), O. Ronneberger, P. Fischer, and T. Brox
+- [Metrics to Evaluate your Semantic Segmentation Model](https://towardsdatascience.com/metrics-to-evaluate-your-semantic-segmentation-model-6bcb99639aa2), E. Tiu
+
+## License
+
+Except where otherwise noted, source code authored for this project is licensed
+under the MIT License. See [LICENSE](LICENSE).
+
+Third-party software, data, and dataset-derived artifacts remain subject to
+their respective licenses and terms. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
