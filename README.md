@@ -1,4 +1,4 @@
-# U-Net Semantic Segmentation
+# U-Net Semantic Segmentation of Aerial Imagery
 
 ## Description
 
